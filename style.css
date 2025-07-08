@@ -1,6 +1,5 @@
-/* --- ZYNEMAX+ STYLES V4.1 (COMPLETO Y FINAL) --- */
+/* --- ZYNEMAX+ STYLES V5 (CON BUTACAS VISUALES) --- */
 /* Autor de la mejora: Asistente de IA */
-/* Replicando wireframes con la lógica PHP del usuario */
 
 /* --- PALETA DE COLORES Y VARIABLES --- */
 :root {
@@ -81,7 +80,7 @@ body {
 /* --- SECCIÓN HERO (IMAGEN GRANDE SUPERIOR) --- */
 .hero-section {
     position: relative;
-    height: 55vh; /* Un poco más de altura para bajar el formulario */
+    height: 55vh;
     min-height: 450px;
     background: url('https://i0.wp.com/efe.com/wp-content/uploads/2024/03/OBJ_20240328T213505S0012I_1_299_1_15_3_1.jpg?fit=1920%2C1080&ssl=1') no-repeat center center/cover;
     display: flex;
@@ -124,7 +123,7 @@ body {
 .form-overlay {
     position: absolute;
     right: 5%;
-    top: 55%; /* Ajustado para bajar el formulario */
+    top: 55%;
     transform: translateY(-50%);
     width: 420px;
     background-color: var(--color-fondo-principal);
@@ -199,7 +198,7 @@ body {
     color: var(--color-primario);
     margin: 0 0 1rem;
     font-size: 1.3rem;
-    min-height: 40px; /* Para alinear títulos de varias líneas */
+    min-height: 40px;
 }
 .card-content p {
     margin: 0.2rem 0;
@@ -280,6 +279,85 @@ button:hover, .button:hover {
     border-bottom: none;
 }
 
+
+/* --- SELECCIÓN DE BUTACAS VISUAL --- */
+.seating-chart-container {
+    background-color: var(--color-primario);
+    padding: 2rem;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 900px;
+    margin: 2rem auto;
+}
+.screen {
+    background-color: var(--color-fondo-principal);
+    color: var(--color-primario);
+    padding: 0.8rem;
+    width: 80%;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border: 2px solid var(--color-primario);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+.seat-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.seat-row-label {
+    color: var(--color-fondo-principal);
+    font-weight: bold;
+    width: 25px;
+    text-align: center;
+    font-size: 1.2rem;
+}
+.seat-button {
+    background-color: var(--color-fondo-principal);
+    color: var(--color-primario);
+    width: 40px;
+    height: 35px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    border: 2px solid #ccc;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+.seat-button:hover:not(.occupied):not(.selected) {
+    background-color: #fff;
+    transform: scale(1.1);
+}
+.seat-button.selected {
+    background-color: #333;
+    color: #fff;
+    border-color: #333;
+    transform: scale(1.1);
+}
+.seat-button.occupied {
+    background-color: #7c2f2f;
+    color: #ab7a7a;
+    cursor: not-allowed;
+    border-color: #7c2f2f;
+}
+/* Ocultamos el input radio, el label es el que se ve */
+.seat-input {
+    display: none;
+}
+
+
 /* --- FOOTER --- */
 .main-footer {
     flex-shrink: 0;
@@ -308,4 +386,6 @@ button:hover, .button:hover {
     .main-nav a { margin: 0.5rem 0; padding: 0.5rem; width: 100%; text-align: center; }
     .nav-button { width: 80%; }
     .page-title-overlay { font-size: 2.5rem; }
+    .seat-button { width: 30px; height: 25px; font-size: 0.8rem;}
+    .seat-row { gap: 5px; }
 }
