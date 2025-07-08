@@ -1,90 +1,90 @@
 <?php
-ob_start(); // Iniciar el búfer de salida
+ob_start();
 header("Content-Type: text/html; charset=UTF-8");
 session_start();
 
-// Si el usuario ya está logueado, redirigir a pelicula.php
 if (isset($_SESSION['dni'])) {
     header("Location: pelicula.php");
     exit();
 }
 
-// Conexión a la base de datos
-$serverName = "database-zynemaxplus-server.database.windows.net";
-$connectionInfo = [
-    "Database" => "database-zynemaxplus-server",
-    "UID" => "zynemaxplus",
-    "PWD" => "grupo2_1al10",
-    "Encrypt" => true,
-    "TrustServerCertificate" => false
-];
-$conn = sqlsrv_connect($serverName, $connectionInfo);
-
-if ($conn === false) {
-    error_log("Conexión fallida: " . print_r(sqlsrv_errors(), true));
-    // Guardamos el error para mostrarlo después
-    $error_message = "Error de conexión con la base de datos.";
-}
-
 $error_message = '';
 $success_message = '';
 
-// Procesar registro (solo cliente)
-if (isset($_POST['register'])) {
-    $dni = isset($_POST['dni']) ? (int)$_POST['dni'] : null;
-    $nombre = isset($_POST['nombre']) ? substr($_POST['nombre'], 0, 50) : null;
-    $email = isset($_POST['email']) ? substr($_POST['email'], 0, 50) : null;
-    $contrasena = isset($_POST['contrasena']) ? password_hash($_POST['contrasena'], PASSWORD_DEFAULT) : null;
-    $tipo_usuario = 'cliente';
-
-    if ($dni && $nombre && $email && $contrasena) {
-        $sql = "INSERT INTO Usuario (dni, nombre, email, contrasena, tipo_usuario) VALUES (?, ?, ?, ?, ?)";
-        $params = [$dni, $nombre, $email, $contrasena, $tipo_usuario];
-        $stmt = sqlsrv_query($conn, $sql, $params);
-
-        if ($stmt === false) {
-            $error_message = "Error al registrarse. El DNI o correo ya podría existir.";
-        } else {
-            $success_message = "Registro exitoso. Por favor, inicia sesión.";
-        }
-        sqlsrv_free_stmt($stmt);
-    } else {
-        $error_message = "Faltan datos en el formulario de registro.";
-    }
+if (isset($_GET['error'])) {
+    $error_code = $_GET['error'];
+    if ($error_code == 1) $error_message = "Error al registrarse. El DNI o correo ya podría existir.";
+    if ($error_code == 2) $error_message = "Faltan datos en el formulario de registro.";
+    if ($error_code == 3) $error_message = "DNI o contraseña incorrectos.";
+    if ($error_code == 4) $error_message = "Usuario no encontrado.";
+    if ($error_code == 5) $error_message = "Faltan datos para iniciar sesión.";
+}
+if (isset($_GET['register_success'])) {
+    $success_message = "Registro exitoso. Por favor, inicia sesión.";
 }
 
-// Procesar login
-if (isset($_POST['login'])) {
-    $dni = isset($_POST['dni']) ? (int)$_POST['dni'] : null;
-    $contrasena = isset($_POST['contrasena']) ? $_POST['contrasena'] : null;
+// Lógica de POST del archivo original
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $serverName = "database-zynemaxplus-server.database.windows.net";
+    $connectionInfo = ["Database" => "database-zynemaxplus-server", "UID" => "zynemaxplus", "PWD" => "grupo2_1al10", "Encrypt" => true, "TrustServerCertificate" => false];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
 
-    if ($dni && $contrasena) {
-        $sql = "SELECT dni, nombre, email, contrasena, tipo_usuario FROM Usuario WHERE dni = ?";
-        $params = [$dni];
-        $stmt = sqlsrv_query($conn, $sql, $params);
-
-        if ($stmt && sqlsrv_has_rows($stmt)) {
-            $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-            if (password_verify($contrasena, $row['contrasena'])) {
-                $_SESSION['dni'] = $row['dni'];
-                $_SESSION['nombre'] = $row['nombre'];
-                $_SESSION['email'] = $row['email'];
-                $_SESSION['tipo_usuario'] = $row['tipo_usuario'];
-                header("Location: pelicula.php");
-                exit();
+    if ($conn) {
+        if (isset($_POST['register'])) {
+            $dni = filter_input(INPUT_POST, 'dni', FILTER_VALIDATE_INT);
+            $nombre = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
+            $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+            $contrasena = $_POST['contrasena'];
+            
+            if ($dni && $nombre && $email && !empty($contrasena)) {
+                $hashed_password = password_hash($contrasena, PASSWORD_DEFAULT);
+                $sql = "INSERT INTO Usuario (dni, nombre, email, contrasena, tipo_usuario) VALUES (?, ?, ?, ?, 'cliente')";
+                $params = [$dni, $nombre, $email, $hashed_password];
+                $stmt = sqlsrv_query($conn, $sql, $params);
+                if ($stmt) {
+                    header("Location: index.php?register_success=1");
+                    exit();
+                } else {
+                    header("Location: index.php?error=1");
+                    exit();
+                }
             } else {
-                $error_message = "DNI o contraseña incorrectos.";
+                header("Location: index.php?error=2");
+                exit();
             }
-        } else {
-            $error_message = "DNI o contraseña incorrectos.";
         }
-        sqlsrv_free_stmt($stmt);
-    } else {
-        $error_message = "Faltan datos para iniciar sesión.";
+        if (isset($_POST['login'])) {
+            $dni = filter_input(INPUT_POST, 'dni', FILTER_VALIDATE_INT);
+            $contrasena = $_POST['contrasena'];
+            if ($dni && !empty($contrasena)) {
+                $sql = "SELECT dni, nombre, email, contrasena, tipo_usuario FROM Usuario WHERE dni = ?";
+                $params = [$dni];
+                $stmt = sqlsrv_query($conn, $sql, $params);
+                if ($stmt && sqlsrv_has_rows($stmt)) {
+                    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+                    if (password_verify($contrasena, $row['contrasena'])) {
+                        $_SESSION['dni'] = $row['dni'];
+                        $_SESSION['nombre'] = $row['nombre'];
+                        $_SESSION['email'] = $row['email'];
+                        $_SESSION['tipo_usuario'] = $row['tipo_usuario'];
+                        header("Location: pelicula.php");
+                        exit();
+                    } else {
+                        header("Location: index.php?error=3");
+                        exit();
+                    }
+                } else {
+                    header("Location: index.php?error=4");
+                    exit();
+                }
+            } else {
+                header("Location: index.php?error=5");
+                exit();
+            }
+        }
+        sqlsrv_close($conn);
     }
 }
-
-if($conn) { sqlsrv_close($conn); }
 ?>
 
 <!DOCTYPE html>
@@ -102,25 +102,24 @@ if($conn) { sqlsrv_close($conn); }
             <nav class="main-nav">
                 <a href="index.php" class="active">INICIO</a>
                 <a href="foro.php">FORO</a>
-                <a href="#" class="nav-button" onclick="document.getElementById('login-form').style.display='block'; document.getElementById('register-form').style.display='none';">INICIAR SESIÓN</a>
+                <a href="#" class="nav-button" onclick="event.preventDefault(); showTab('login');">INICIAR SESIÓN</a>
             </nav>
         </header>
         <main>
             <section class="hero-section">
                 <div class="form-overlay">
                     <div class="form-tabs">
-                        <a href="#" class="tab-link active" onclick="showTab('login')">Iniciar Sesión</a>
-                        <a href="#" class="tab-link" onclick="showTab('register')">Regístrate</a>
+                        <button class="tab-link active" onclick="showTab('login')">Iniciar Sesión</button>
+                        <button class="tab-link" onclick="showTab('register')">Regístrate</button>
                     </div>
 
                     <?php if ($error_message): ?>
-                        <p class="message error"><?php echo htmlspecialchars($error_message); ?></p>
+                        <p style="color:red; text-align:center;"><?php echo htmlspecialchars($error_message); ?></p>
                     <?php endif; ?>
                     <?php if ($success_message): ?>
-                        <p class="message success"><?php echo htmlspecialchars($success_message); ?></p>
+                        <p style="color:green; text-align:center;"><?php echo htmlspecialchars($success_message); ?></p>
                     <?php endif; ?>
 
-                    <!-- Formulario de Login -->
                     <div id="login-form">
                         <form method="POST" action="index.php">
                             <label for="login-dni">DNI:</label>
@@ -130,8 +129,6 @@ if($conn) { sqlsrv_close($conn); }
                             <button type="submit" name="login">Iniciar Sesión</button>
                         </form>
                     </div>
-
-                    <!-- Formulario de Registro -->
                     <div id="register-form" style="display: none;">
                         <form method="POST" action="index.php">
                             <label for="reg-dni">DNI:</label>
@@ -142,7 +139,7 @@ if($conn) { sqlsrv_close($conn); }
                             <input type="email" id="reg-email" name="email" placeholder="Tu correo" required maxlength="50">
                             <label for="reg-pass">Contraseña:</label>
                             <input type="password" id="reg-pass" name="contrasena" placeholder="Crea una contraseña" required>
-                            <button type="submit" name="register">Registrarse</button>
+                            <button type="submit" name="register">REGISTRARSE</button>
                         </form>
                     </div>
                 </div>
@@ -155,27 +152,20 @@ if($conn) { sqlsrv_close($conn); }
     <footer class="main-footer">
         <p>© 2025 Zynemax+ | Todos los derechos reservados</p>
     </footer>
-
     <script>
-        // Pequeño script para manejar las pestañas de login/registro
         function showTab(tabName) {
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const tabs = document.querySelectorAll('.tab-link');
-
-            if (tabName === 'login') {
-                loginForm.style.display = 'block';
-                registerForm.style.display = 'none';
-                tabs[0].classList.add('active');
-                tabs[1].classList.remove('active');
-            } else {
-                loginForm.style.display = 'none';
-                registerForm.style.display = 'block';
-                tabs[0].classList.remove('active');
-                tabs[1].classList.add('active');
-            }
+            document.getElementById('login-form').style.display = (tabName === 'login') ? 'block' : 'none';
+            document.getElementById('register-form').style.display = (tabName === 'register') ? 'block' : 'none';
+            document.querySelectorAll('.tab-link').forEach((tab, index) => {
+                if ((index === 0 && tabName === 'login') || (index === 1 && tabName === 'register')) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
         }
-        <?php if(isset($_POST['register'])) echo "showTab('register');"; ?>
+        <?php if(isset($_POST['register']) || (isset($_GET['error']) && in_array($_GET['error'], [1,2]))) echo "showTab('register');"; ?>
+        <?php if(isset($_GET['register_success'])) echo "showTab('login');"; ?>
     </script>
 </body>
 </html>
