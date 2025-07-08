@@ -114,7 +114,7 @@ sqlsrv_close($conn);
             border: 2px solid var(--color-primario); /* Borde primario para destacar */
         }
         .purchase-history-container h2 {
-            color: var(--color-primario); /* Título en color primario (rojo/vino) */
+            color: #F5F0E6; /* Título en color primario (rojo/vino) */
             margin-bottom: 30px;
             text-align: center;
             font-size: 2.5em; /* Título más grande */
@@ -155,7 +155,7 @@ sqlsrv_close($conn);
             flex-wrap: wrap; /* Permite que los elementos se envuelvan si el espacio es limitado */
         }
         .purchase-item strong {
-            color: #3d3d3d; /* Etiquetas en color primario */
+            color: #FFFFFF; /* Etiquetas en color primario */
             font-weight: bold;
             flex-shrink: 0;
             margin-right: 15px;
