@@ -12,17 +12,33 @@ $connectionInfo = ["Database" => "database-zynemaxplus-server", "UID" => "zynema
 $conn = sqlsrv_connect($serverName, $connectionInfo);
 if ($conn === false) { die("Error de conexión."); }
 
-// COPIA COMPLETA DE TU LÓGICA POST ORIGINAL
+// Manejo de POST para selección de película
 if (isset($_POST['select_movie'])) {
     $movie_id = isset($_POST['movie_id']) ? (int)$_POST['movie_id'] : null;
-    if ($movie_id) { $_SESSION['selected_movie'] = $movie_id; header("Location: pelicula.php?step=sede"); exit(); } 
-    else { header("Location: pelicula.php"); exit(); }
+    if ($movie_id) { 
+        $_SESSION['selected_movie'] = $movie_id; 
+        header("Location: pelicula.php?step=sede"); 
+        exit(); 
+    } else { 
+        header("Location: pelicula.php"); 
+        exit(); 
+    }
 }
+
+// Manejo de POST para selección de sede
 if (isset($_POST['select_sede'])) {
     $sede_id = isset($_POST['sede_id']) ? (int)$_POST['sede_id'] : null;
-    if ($sede_id) { $_SESSION['selected_sede'] = $sede_id; header("Location: pelicula.php?step=sala"); exit(); } 
-    else { header("Location: pelicula.php?step=movies"); exit(); }
+    if ($sede_id) { 
+        $_SESSION['selected_sede'] = $sede_id; 
+        header("Location: pelicula.php?step=sala"); 
+        exit(); 
+    } else { 
+        header("Location: pelicula.php?step=movies"); 
+        exit(); 
+    }
 }
+
+// Manejo de POST para selección de sala y función
 if (isset($_POST['select_sala'])) {
     $sala_id = isset($_POST['sala_id']) ? (int)$_POST['sala_id'] : null;
     $funcion_id = isset($_POST['funcion_id']) ? (int)$_POST['funcion_id'] : null;
@@ -51,19 +67,62 @@ if (isset($_POST['select_sala'])) {
         $_SESSION['id_reserva_funcion'] = $id_reserva_funcion;
         header("Location: pelicula.php?step=butaca");
         exit();
-    } else { header("Location: pelicula.php?step=sede"); exit(); }
+    } else { 
+        header("Location: pelicula.php?step=sede"); 
+        exit(); 
+    }
 }
+
+// Manejo de POST para selección de múltiples butacas
 if (isset($_POST['select_butaca'])) {
-    $butaca_id = isset($_POST['butaca_id']) ? (int)$_POST['butaca_id'] : null;
-    if ($butaca_id && isset($_SESSION['id_reserva_funcion'])) {
-        $sql = "INSERT INTO Reserva_butaca (id_reserva_funcion, id_butaca) VALUES (?, ?)";
-        $params = [$_SESSION['id_reserva_funcion'], $butaca_id];
-        sqlsrv_query($conn, $sql, $params);
-        $_SESSION['selected_butaca'] = $butaca_id;
-        header("Location: pelicula.php?step=summary");
+    $butaca_ids = isset($_POST['butaca_ids']) && is_array($_POST['butaca_ids']) ? array_map('intval', $_POST['butaca_ids']) : [];
+    if (!empty($butaca_ids) && isset($_SESSION['id_reserva_funcion'])) {
+        // Iniciar transacción para evitar reservas dobles
+        sqlsrv_begin_transaction($conn);
+        try {
+            // Verificar que todas las butacas seleccionadas estén disponibles
+            $placeholders = implode(',', array_fill(0, count($butaca_ids), '?'));
+            $sql_check = "SELECT id_butaca FROM Reserva_butaca rb 
+                          JOIN Reserva_funcion rf ON rb.id_reserva_funcion = rf.id_reserva_funcion 
+                          WHERE rf.id_funcion = ? AND rb.id_butaca IN ($placeholders)";
+            $params = array_merge([$_SESSION['function_id']], $butaca_ids);
+            $stmt_check = sqlsrv_query($conn, $sql_check, $params);
+            $occupied_seats = [];
+            while ($row = sqlsrv_fetch_array($stmt_check, SQLSRV_FETCH_ASSOC)) {
+                $occupied_seats[] = $row['id_butaca'];
+            }
+            if (!empty($occupied_seats)) {
+                sqlsrv_rollback($conn);
+                echo "<p style='color: red; text-align: center;'>Error: Una o más butacas seleccionadas ya están reservadas. Por favor, selecciona otras.</p>";
+                exit;
+            }
+
+            // Insertar cada butaca en Reserva_butaca
+            $sql_insert = "INSERT INTO Reserva_butaca (id_reserva_funcion, id_butaca) VALUES (?, ?)";
+            foreach ($butaca_ids as $butaca_id) {
+                $params = [$_SESSION['id_reserva_funcion'], $butaca_id];
+                if (!sqlsrv_query($conn, $sql_insert, $params)) {
+                    sqlsrv_rollback($conn);
+                    die("Error al reservar butacas.");
+                }
+            }
+
+            // Confirmar transacción
+            sqlsrv_commit($conn);
+            $_SESSION['selected_butacas'] = $butaca_ids; // Guardar array de butacas seleccionadas
+            header("Location: pelicula.php?step=summary");
+            exit();
+        } catch (Exception $e) {
+            sqlsrv_rollback($conn);
+            die("Error en la transacción: " . $e->getMessage());
+        }
+    } else {
+        header("Location: pelicula.php?step=sala");
         exit();
-    } else { header("Location: pelicula.php?step=sala"); exit(); }
+    }
 }
+
+// Manejo de POST para confirmar compra
 if (isset($_POST['confirm_purchase'])) {
     $id_reserva_funcion = $_SESSION['id_reserva_funcion'];
     $fecha_pago = date('Y-m-d H:i:s');
@@ -79,9 +138,12 @@ if (isset($_POST['confirm_purchase'])) {
 
 $step = $_GET['step'] ?? 'movies'; 
 $title_map = [
-    'movies' => 'Selecciona una Película', 'sede' => 'Selecciona una Sede',
-    'sala' => 'Selecciona una Sala', 'butaca' => 'Selecciona una Butaca',
-    'summary' => 'Resumen de tu Compra', 'receipt' => 'Comprobante de Pago'
+    'movies' => 'Selecciona una Película', 
+    'sede' => 'Selecciona una Sede',
+    'sala' => 'Selecciona una Sala', 
+    'butaca' => 'Selecciona una Butaca',
+    'summary' => 'Resumen de tu Compra', 
+    'receipt' => 'Comprobante de Pago'
 ];
 ?>
 <!DOCTYPE html>
@@ -131,11 +193,47 @@ $title_map = [
                         <?php endwhile; sqlsrv_free_stmt($stmt); ?>
                     </div>
 
+                <?php elseif ($step === 'sede'): ?>
+                    <div class="form-container">
+                        <?php
+                        $sql = "SELECT DISTINCT s.id_sede, s.ciudad_sede, s.direccion_sede FROM Sede s JOIN Sala sa ON s.id_sede = sa.id_sede JOIN Funcion f ON sa.id_sala = f.id_sala WHERE f.id_pelicula = ?";
+                        $stmt = sqlsrv_query($conn, $sql, [$_SESSION['selected_movie']]);
+                        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)): ?>
+                            <div class="selection-item">
+                                <p><strong>Ciudad:</strong> <?php echo htmlspecialchars($row['ciudad_sede']); ?></p>
+                                <p><strong>Dirección:</strong> <?php echo htmlspecialchars($row['direccion_sede']); ?></p>
+                                <form method="POST">
+                                    <input type="hidden" name="sede_id" value="<?php echo $row['id_sede']; ?>">
+                                    <button type="submit" name="select_sede">Seleccionar</button>
+                                </form>
+                            </div>
+                        <?php endwhile; sqlsrv_free_stmt($stmt); ?>
+                    </div>
+
+                <?php elseif ($step === 'sala'): ?>
+                    <div class="form-container">
+                        <?php
+                        $sql = "SELECT s.id_sala, s.nombre_sala, f.id_funcion, f.fecha_hora FROM Sala s JOIN Funcion f ON s.id_sala = f.id_sala WHERE s.id_sede = ? AND f.id_pelicula = ?";
+                        $stmt = sqlsrv_query($conn, $sql, [$_SESSION['selected_sede'], $_SESSION['selected_movie']]);
+                        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)): ?>
+                            <div class="selection-item">
+                                <p><strong>Sala:</strong> <?php echo htmlspecialchars($row['nombre_sala']); ?></p>
+                                <p><strong>Fecha y Hora:</strong> <?php echo $row['fecha_hora']->format('Y-m-d H:i:s'); ?></p>
+                                <form method="POST">
+                                    <input type="hidden" name="sala_id" value="<?php echo $row['id_sala']; ?>">
+                                    <input type="hidden" name="funcion_id" value="<?php echo $row['id_funcion']; ?>">
+                                    <input type="hidden" name="sala_name" value="<?php echo htmlspecialchars($row['nombre_sala']); ?>">
+                                    <button type="submit" name="select_sala">Seleccionar</button>
+                                </form>
+                            </div>
+                        <?php endwhile; sqlsrv_free_stmt($stmt); ?>
+                    </div>
+
                 <?php elseif ($step === 'butaca'): ?>
                     <div class="seating-chart-container">
                         <div class="screen">PANTALLA</div>
                         <div id="selected-seat" style="color: var(--color-texto-claro); font-size: 1.2rem; margin-bottom: 1.5rem; text-align: center;">
-                            Selecciona una butaca
+                            Selecciona una o más butacas
                         </div>
                         <form method="POST" action="pelicula.php">
                             <div class="seat-grid">
@@ -165,7 +263,7 @@ $title_map = [
                                         $is_occupied = in_array($id_butaca, $occupied_seats_ids);
                                     ?>
                                         <label class="seat-button <?php echo $is_occupied ? 'occupied' : ''; ?>" data-fila="<?php echo htmlspecialchars($fila); ?>" data-numero="<?php echo $numero; ?>">
-                                            <input type="radio" name="butaca_id" value="<?php echo $id_butaca; ?>" class="seat-input" <?php echo $is_occupied ? 'disabled' : ''; ?>>
+                                            <input type="checkbox" name="butaca_ids[]" value="<?php echo $id_butaca; ?>" class="seat-input" <?php echo $is_occupied ? 'disabled' : ''; ?>>
                                             <?php echo $numero; ?>
                                         </label>
                                     <?php endforeach; ?>
@@ -173,72 +271,77 @@ $title_map = [
                                 </div>
                                 <?php endforeach; ?>
                             </div>
-                            <button type="submit" name="select_butaca" class="button confirm-button" style="margin-top: 2rem;">Confirmar Butaca</button>
+                            <button type="submit" name="select_butaca" class="button confirm-button" style="margin-top: 2rem;">Confirmar Butacas</button>
                         </form>
                     </div>
 
-                <?php else: ?>
+                <?php elseif ($step === 'summary'): ?>
                     <div class="form-container">
-                        <?php if ($step === 'sede'):
-                            $sql = "SELECT DISTINCT s.id_sede, s.ciudad_sede, s.direccion_sede FROM Sede s JOIN Sala sa ON s.id_sede = sa.id_sede JOIN Funcion f ON sa.id_sala = f.id_sala WHERE f.id_pelicula = ?";
-                            $stmt = sqlsrv_query($conn, $sql, [$_SESSION['selected_movie']]);
-                            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)): ?>
-                                <div class="selection-item">
-                                    <p><strong>Ciudad:</strong> <?php echo htmlspecialchars($row['ciudad_sede']); ?></p>
-                                    <p><strong>Dirección:</strong> <?php echo htmlspecialchars($row['direccion_sede']); ?></p>
-                                    <form method="POST"><input type="hidden" name="sede_id" value="<?php echo $row['id_sede']; ?>"><button type="submit" name="select_sede">Seleccionar</button></form>
-                                </div>
-                            <?php endwhile; sqlsrv_free_stmt($stmt); ?>
-                        <?php endif; ?>
+                        <?php
+                        $sql_p = "SELECT titulo, precio FROM Pelicula WHERE id_pelicula = ?"; 
+                        $stmt_p = sqlsrv_query($conn, $sql_p, [$_SESSION['selected_movie']]); 
+                        $pelicula_data = sqlsrv_fetch_array($stmt_p, SQLSRV_FETCH_ASSOC);
+                        $sql_s = "SELECT ciudad_sede FROM Sede WHERE id_sede = ?"; 
+                        $stmt_s = sqlsrv_query($conn, $sql_s, [$_SESSION['selected_sede']]); 
+                        $sede_data = sqlsrv_fetch_array($stmt_s, SQLSRV_FETCH_ASSOC);
+                        $sql_f = "SELECT fecha_hora FROM Funcion WHERE id_funcion = ?"; 
+                        $stmt_f = sqlsrv_query($conn, $sql_f, [$_SESSION['function_id']]); 
+                        $funcion_data = sqlsrv_fetch_array($stmt_f, SQLSRV_FETCH_ASSOC);
+                        $sql_b = "SELECT fila, numero_butaca FROM Butaca WHERE id_butaca IN (" . implode(',', array_fill(0, count($_SESSION['selected_butacas']), '?')) . ")";
+                        $stmt_b = sqlsrv_query($conn, $sql_b, $_SESSION['selected_butacas']);
+                        $butacas = [];
+                        while ($row = sqlsrv_fetch_array($stmt_b, SQLSRV_FETCH_ASSOC)) {
+                            $butacas[] = "Fila " . htmlspecialchars($row['fila']) . ", Asiento " . $row['numero_butaca'];
+                        }
+                        ?>
+                        <p><strong>Usuario:</strong> <?php echo htmlspecialchars($_SESSION['nombre']); ?></p>
+                        <p><strong>Película:</strong> <?php echo htmlspecialchars($pelicula_data['titulo']); ?></p>
+                        <p><strong>Sede:</strong> <?php echo htmlspecialchars($sede_data['ciudad_sede']); ?></p>
+                        <p><strong>Sala:</strong> <?php echo htmlspecialchars($_SESSION['sala_name']); ?></p>
+                        <p><strong>Butacas:</strong> <?php echo implode('; ', $butacas); ?></p>
+                        <p><strong>Fecha y Hora:</strong> <?php echo $funcion_data['fecha_hora']->format('Y-m-d H:i:s'); ?></p>
+                        <p><strong>Precio Total:</strong> S/ <?php echo number_format($pelicula_data['precio'] * count($_SESSION['selected_butacas']), 2); ?></p>
+                        <form method="POST"><button type="submit" name="confirm_purchase">Confirmar Compra</button></form>
+                    </div>
 
-                        <?php if ($step === 'sala'):
-                            $sql = "SELECT s.id_sala, s.nombre_sala, f.id_funcion, f.fecha_hora FROM Sala s JOIN Funcion f ON s.id_sala = f.id_sala WHERE s.id_sede = ? AND f.id_pelicula = ?";
-                            $stmt = sqlsrv_query($conn, $sql, [$_SESSION['selected_sede'], $_SESSION['selected_movie']]);
-                            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)): ?>
-                                <div class="selection-item">
-                                    <p><strong>Sala:</strong> <?php echo htmlspecialchars($row['nombre_sala']); ?></p>
-                                    <p><strong>Fecha y Hora:</strong> <?php echo $row['fecha_hora']->format('Y-m-d H:i:s'); ?></p>
-                                    <form method="POST"><input type="hidden" name="sala_id" value="<?php echo $row['id_sala']; ?>"><input type="hidden" name="funcion_id" value="<?php echo $row['id_funcion']; ?>"><input type="hidden" name="sala_name" value="<?php echo htmlspecialchars($row['nombre_sala']); ?>"><button type="submit" name="select_sala">Seleccionar</button></form>
-                                </div>
-                            <?php endwhile; sqlsrv_free_stmt($stmt); ?>
-                        <?php endif; ?>
-
-                        <?php if ($step === 'summary'):
-                            $sql_p = "SELECT titulo, precio FROM Pelicula WHERE id_pelicula = ?"; $stmt_p = sqlsrv_query($conn, $sql_p, [$_SESSION['selected_movie']]); $pelicula_data = sqlsrv_fetch_array($stmt_p, SQLSRV_FETCH_ASSOC);
-                            $sql_s = "SELECT ciudad_sede FROM Sede WHERE id_sede = ?"; $stmt_s = sqlsrv_query($conn, $sql_s, [$_SESSION['selected_sede']]); $sede_data = sqlsrv_fetch_array($stmt_s, SQLSRV_FETCH_ASSOC);
-                            $sql_f = "SELECT fecha_hora FROM Funcion WHERE id_funcion = ?"; $stmt_f = sqlsrv_query($conn, $sql_f, [$_SESSION['function_id']]); $funcion_data = sqlsrv_fetch_array($stmt_f, SQLSRV_FETCH_ASSOC);
-                            $sql_b = "SELECT fila, numero_butaca FROM Butaca WHERE id_butaca = ?"; $stmt_b = sqlsrv_query($conn, $sql_b, [$_SESSION['selected_butaca']]); $butaca_data = sqlsrv_fetch_array($stmt_b, SQLSRV_FETCH_ASSOC);
-                            ?>
-                            <p><strong>Usuario:</strong> <?php echo htmlspecialchars($_SESSION['nombre']); ?></p>
-                            <p><strong>Película:</strong> <?php echo htmlspecialchars($pelicula_data['titulo']); ?></p>
-                            <p><strong>Sede:</strong> <?php echo htmlspecialchars($sede_data['ciudad_sede']); ?></p>
-                            <p><strong>Sala:</strong> <?php echo htmlspecialchars($_SESSION['sala_name']); ?></p>
-                            <p><strong>Butaca:</strong> Fila <?php echo htmlspecialchars($butaca_data['fila']); ?>, Número <?php echo $butaca_data['numero_butaca']; ?></p>
-                            <p><strong>Fecha y Hora:</strong> <?php echo $funcion_data['fecha_hora']->format('Y-m-d H:i:s'); ?></p>
-                            <p><strong>Precio:</strong> S/ <?php echo number_format($pelicula_data['precio'], 2); ?></p>
-                            <form method="POST"><button type='submit' name='confirm_purchase'>Confirmar Compra</button></form>
-                        <?php endif; ?>
-
-                        <?php if ($step === 'receipt'):
-                             $sql = "SELECT u.nombre AS un, p.titulo AS pt, p.precio AS pp, s.ciudad_sede AS sc, sa.nombre_sala AS sn, b.fila AS bf, b.numero_butaca AS bn, f.fecha_hora AS ffh, pa.fecha_pago AS pfp, pa.metodo_pago AS pmp FROM Pago pa JOIN Reserva_funcion rf ON pa.id_reserva_funcion = rf.id_reserva_funcion JOIN Reserva r ON rf.id_reserva = r.id_reserva JOIN Usuario u ON r.dni_usuario = u.dni JOIN Funcion f ON rf.id_funcion = f.id_funcion JOIN Pelicula p ON f.id_pelicula = p.id_pelicula JOIN Sala sa ON f.id_sala = sa.id_sala JOIN Sede s ON sa.id_sede = s.id_sede JOIN Reserva_butaca rb ON rb.id_reserva_funcion = rf.id_reserva_funcion JOIN Butaca b ON rb.id_butaca = b.id_butaca WHERE pa.id_pago = ?";
-                             $stmt = sqlsrv_query($conn, $sql, [$_SESSION['id_pago']]);
-                             $comprobante = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-                             ?>
-                            <h3>Zynemax+ | Tu Cine Favorito</h3><hr>
-                            <p><strong>Usuario:</strong> <?php echo htmlspecialchars($comprobante['un']); ?></p>
-                            <p><strong>Película:</strong> <?php echo htmlspecialchars($comprobante['pt']); ?></p>
-                            <p><strong>Sede:</strong> <?php echo htmlspecialchars($comprobante['sc']); ?></p>
-                            <p><strong>Sala:</strong> <?php echo htmlspecialchars($comprobante['sn']); ?></p>
-                            <p><strong>Butaca:</strong> Fila <?php echo htmlspecialchars($comprobante['bf']); ?>, Número <?php echo $comprobante['bn']; ?></p>
-                            <p><strong>Fecha y Hora de la Función:</strong> <?php echo $comprobante['ffh']->format('Y-m-d H:i:s'); ?></p>
-                            <p><strong>Monto Pagado:</strong> S/ <?php echo number_format($comprobante['pp'], 2); ?></p>
-                            <p><strong>Método de Pago:</strong> <?php echo htmlspecialchars(ucfirst($comprobante['pmp'])); ?></p>
-                            <p><strong>Fecha de Pago:</strong> <?php echo $comprobante['pfp']->format('Y-m-d H:i:s'); ?></p><hr>
-                            <p>¡Gracias por tu compra en Zynemax+! Disfruta tu película.</p>
-                            <a href='pelicula.php' class='button'>Volver al Inicio</a>
-                             <?php
-                             unset($_SESSION['selected_movie'], $_SESSION['selected_sede'], $_SESSION['selected_sala'], $_SESSION['sala_name'], $_SESSION['selected_butaca'], $_SESSION['function_id'], $_SESSION['id_reserva'], $_SESSION['id_reserva_funcion'], $_SESSION['id_pago']);
-                        endif; ?>
+                <?php elseif ($step === 'receipt'): ?>
+                    <div class="form-container">
+                        <?php
+                        $sql = "SELECT u.nombre AS un, p.titulo AS pt, p.precio AS pp, s.ciudad_sede AS sc, sa.nombre_sala AS sn, f.fecha_hora AS ffh, pa.fecha_pago AS pfp, pa.metodo_pago AS pmp 
+                                FROM Pago pa 
+                                JOIN Reserva_funcion rf ON pa.id_reserva_funcion = rf.id_reserva_funcion 
+                                JOIN Reserva r ON rf.id_reserva = r.id_reserva 
+                                JOIN Usuario u ON r.dni_usuario = u.dni 
+                                JOIN Funcion f ON rf.id_funcion = f.id_funcion 
+                                JOIN Pelicula p ON f.id_pelicula = p.id_pelicula 
+                                JOIN Sala sa ON f.id_sala = sa.id_sala 
+                                JOIN Sede s ON sa.id_sede = s.id_sede 
+                                WHERE pa.id_pago = ?";
+                        $stmt = sqlsrv_query($conn, $sql, [$_SESSION['id_pago']]);
+                        $comprobante = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+                        
+                        $sql_b = "SELECT fila, numero_butaca FROM Butaca WHERE id_butaca IN (" . implode(',', array_fill(0, count($_SESSION['selected_butacas']), '?')) . ")";
+                        $stmt_b = sqlsrv_query($conn, $sql_b, $_SESSION['selected_butacas']);
+                        $butacas = [];
+                        while ($row = sqlsrv_fetch_array($stmt_b, SQLSRV_FETCH_ASSOC)) {
+                            $butacas[] = "Fila " . htmlspecialchars($row['fila']) . ", Asiento " . $row['numero_butaca'];
+                        }
+                        ?>
+                        <h3>Zynemax+ | Tu Cine Favorito</h3><hr>
+                        <p><strong>Usuario:</strong> <?php echo htmlspecialchars($comprobante['un']); ?></p>
+                        <p><strong>Película:</strong> <?php echo htmlspecialchars($comprobante['pt']); ?></p>
+                        <p><strong>Sede:</strong> <?php echo htmlspecialchars($comprobante['sc']); ?></p>
+                        <p><strong>Sala:</strong> <?php echo htmlspecialchars($comprobante['sn']); ?></p>
+                        <p><strong>Butacas:</strong> <?php echo implode('; ', $butacas); ?></p>
+                        <p><strong>Fecha y Hora de la Función:</strong> <?php echo $comprobante['ffh']->format('Y-m-d H:i:s'); ?></p>
+                        <p><strong>Monto Pagado:</strong> S/ <?php echo number_format($comprobante['pp'] * count($_SESSION['selected_butacas']), 2); ?></p>
+                        <p><strong>Método de Pago:</strong> <?php echo htmlspecialchars(ucfirst($comprobante['pmp'])); ?></p>
+                        <p><strong>Fecha de Pago:</strong> <?php echo $comprobante['pfp']->format('Y-m-d H:i:s'); ?></p><hr>
+                        <p>¡Gracias por tu compra en Zynemax+! Disfruta tu película.</p>
+                        <a href='pelicula.php' class='button'>Volver al Inicio</a>
+                        <?php
+                        unset($_SESSION['selected_movie'], $_SESSION['selected_sede'], $_SESSION['selected_sala'], $_SESSION['sala_name'], $_SESSION['selected_butacas'], $_SESSION['function_id'], $_SESSION['id_reserva'], $_SESSION['id_reserva_funcion'], $_SESSION['id_pago']);
+                        ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -252,32 +355,51 @@ $title_map = [
         document.addEventListener('DOMContentLoaded', function() {
             const seatButtons = document.querySelectorAll('.seat-button:not(.occupied)');
             const selectedSeatDisplay = document.getElementById('selected-seat');
+            const maxSeats = 10; // Límite de butacas por compra
+
+            function updateSelectedSeats() {
+                const selectedSeats = document.querySelectorAll('.seat-button.selected');
+                const selectedCount = selectedSeats.length;
+                if (selectedCount === 0) {
+                    selectedSeatDisplay.textContent = 'Selecciona una o más butacas';
+                } else {
+                    const seatList = Array.from(selectedSeats).map(button => {
+                        const fila = button.getAttribute('data-fila');
+                        const numero = button.getAttribute('data-numero');
+                        return `Fila ${fila}, Asiento ${numero}`;
+                    });
+                    selectedSeatDisplay.textContent = `Butacas seleccionadas: ${seatList.join('; ')}`;
+                }
+            }
 
             seatButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    // Remover la clase .selected de todos los botones
-                    seatButtons.forEach(btn => btn.classList.remove('selected'));
+                    const input = this.querySelector('.seat-input');
+                    const selectedSeats = document.querySelectorAll('.seat-button.selected').length;
 
-                    // Agregar la clase .selected al botón clickeado
-                    this.classList.add('selected');
+                    if (!input.checked && selectedSeats >= maxSeats) {
+                        alert(`No puedes seleccionar más de ${maxSeats} butacas por compra.`);
+                        return;
+                    }
 
-                    // Actualizar el texto con la butaca seleccionada
-                    const fila = this.getAttribute('data-fila');
-                    const numero = this.getAttribute('data-numero');
-                    selectedSeatDisplay.textContent = `Butaca seleccionada: Fila ${fila}, Asiento ${numero}`;
+                    this.classList.toggle('selected');
+                    input.checked = !input.checked;
+                    updateSelectedSeats();
                 });
             });
 
-            // Asegurar que solo una butaca esté seleccionada (radio input behavior)
+            // Actualizar visualmente si se cambia el estado del checkbox directamente
             const seatInputs = document.querySelectorAll('.seat-input:not([disabled])');
             seatInputs.forEach(input => {
                 input.addEventListener('change', function() {
-                    seatButtons.forEach(btn => btn.classList.remove('selected'));
                     const label = input.closest('.seat-button');
-                    label.classList.add('selected');
-                    const fila = label.getAttribute('data-fila');
-                    const numero = label.getAttribute('data-numero');
-                    selectedSeatDisplay.textContent = `Butaca seleccionada: Fila ${fila}, Asiento ${numero}`;
+                    if (input.checked && document.querySelectorAll('.seat-button.selected').length > maxSeats) {
+                        input.checked = false;
+                        alert(`No puedes seleccionar más de ${maxSeats} butacas por compra.`);
+                        return;
+                    }
+                    label.classList.toggle('selected', input.checked);
+                    updateSelectedSeats();
                 });
             });
         });
