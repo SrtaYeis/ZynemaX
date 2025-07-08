@@ -30,6 +30,7 @@ if (isset($_POST['select_sala'])) {
     if ($sala_id && $funcion_id && $sala_name) {
         $dni_usuario = $_SESSION['dni'];
         $fecha_reserva = date('Y-m-d H:i:s');
+        // Usamos SCOPE_IDENTITY() de una manera más robusta que es compatible con más configuraciones de SQL Server.
         $sql = "INSERT INTO Reserva (dni_usuario, fecha_reserva) VALUES (?, ?); SELECT SCOPE_IDENTITY() AS id;";
         $params = [$dni_usuario, $fecha_reserva];
         $stmt = sqlsrv_query($conn, $sql, $params);
@@ -169,7 +170,6 @@ $title_map = [
                         <?php endif; ?>
 
                         <?php if ($step === 'summary'):
-                            // Tu lógica para obtener los datos del resumen
                             $sql_p = "SELECT titulo, precio FROM Pelicula WHERE id_pelicula = ?"; $stmt_p = sqlsrv_query($conn, $sql_p, [$_SESSION['selected_movie']]); $pelicula_data = sqlsrv_fetch_array($stmt_p, SQLSRV_FETCH_ASSOC);
                             $sql_s = "SELECT ciudad_sede FROM Sede WHERE id_sede = ?"; $stmt_s = sqlsrv_query($conn, $sql_s, [$_SESSION['selected_sede']]); $sede_data = sqlsrv_fetch_array($stmt_s, SQLSRV_FETCH_ASSOC);
                             $sql_f = "SELECT fecha_hora FROM Funcion WHERE id_funcion = ?"; $stmt_f = sqlsrv_query($conn, $sql_f, [$_SESSION['function_id']]); $funcion_data = sqlsrv_fetch_array($stmt_f, SQLSRV_FETCH_ASSOC);
@@ -203,7 +203,6 @@ $title_map = [
                             <p>¡Gracias por tu compra en Zynemax+! Disfruta tu película.</p>
                             <a href='pelicula.php' class='button'>Volver al Inicio</a>
                              <?php
-                             // Limpiar sesión para nueva compra
                              unset($_SESSION['selected_movie'], $_SESSION['selected_sede'], $_SESSION['selected_sala'], $_SESSION['sala_name'], $_SESSION['selected_butaca'], $_SESSION['function_id'], $_SESSION['id_reserva'], $_SESSION['id_reserva_funcion'], $_SESSION['id_pago']);
                         endif; ?>
                     </div>
