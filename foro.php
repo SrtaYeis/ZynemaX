@@ -2,6 +2,39 @@
 ob_start();
 session_start();
 
+// Database connection
+$serverName = "database-zynemaxplus-server.database.windows.net";
+$connectionOptions = array(
+    "Database" => "your_database_name", // Replace with your database name
+    "Uid" => "zynemaxplus",
+    "PWD" => "grupo2_1al10",
+    "Encrypt" => true,
+    "TrustServerCertificate" => false
+);
+$conn = sqlsrv_connect($serverName, $connectionOptions);
+if ($conn === false) {
+    die(print_r(sqlsrv_errors(), true));
+}
+
+// Fetch movies and venues
+$movies = [];
+$venues = [];
+if ($conn) {
+    $movieQuery = "SELECT id FROM movies"; // Adjust table and column names as per your schema
+    $venueQuery = "SELECT id FROM venues"; // Adjust table and column names as per your schema
+    $movieResult = sqlsrv_query($conn, $movieQuery);
+    $venueResult = sqlsrv_query($conn, $venueQuery);
+
+    while ($row = sqlsrv_fetch_array($movieResult, SQLSRV_FETCH_ASSOC)) {
+        $movies[] = $row['id'];
+    }
+    while ($row = sqlsrv_fetch_array($venueResult, SQLSRV_FETCH_ASSOC)) {
+        $venues[] = $row['id'];
+    }
+    sqlsrv_close($conn);
+}
+
+// API request function (unchanged)
 function makeApiRequest($url, $method = 'GET', $data = null) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -84,19 +117,27 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
                 <?php if (isset($_SESSION['dni'])): ?>
                     <div class="form-container">
                         <h2>Publicar una Reseña</h2>
-                         <?php
+                        <?php
                             $error = $_GET['error'] ?? 0;
                             if ($error == 1) echo "<p style='color:red;'>Error al enviar la reseña. Por favor intenta de nuevo.</p>";
                             if ($error == 2) echo "<p style='color:red;'>Faltan datos o los datos son inválidos.</p>";
                             if (isset($_GET['success'])) echo "<p style='color:green;'>Reseña enviada exitosamente.</p>";
-                         ?>
+                        ?>
                         <form method="POST">
                             <select name="review_type" required>
                                 <option value="">Selecciona el tipo de reseña</option>
                                 <option value="pelicula">Película</option>
                                 <option value="sede">Sede</option>
                             </select>
-                            <input type="number" name="id" placeholder="ID de Película o Sede" required>
+                            <select name="id" required>
+                                <option value="">Selecciona un ID</option>
+                                <?php foreach ($movies as $movieId): ?>
+                                    <option value="<?php echo htmlspecialchars($movieId); ?>">Película ID: <?php echo htmlspecialchars($movieId); ?></option>
+                                <?php endforeach; ?>
+                                <?php foreach ($venues as $venueId): ?>
+                                    <option value="<?php echo htmlspecialchars($venueId); ?>">Sede ID: <?php echo htmlspecialchars($venueId); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                             <textarea name="comment" placeholder="Tu comentario (máx. 500 caracteres)" required maxlength="500"></textarea>
                             <select name="rating" required>
                                 <option value="">Selecciona una puntuación</option>
