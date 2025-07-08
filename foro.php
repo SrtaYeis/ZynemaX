@@ -59,12 +59,10 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
             'nombre' => $_SESSION['nombre'],
             'comentario' => $comment,
             'puntuacion' => $rating,
-            'id' => $id,
-            'timestamp' => date('c')
+            'id' => (string)$id // Cast id to string to match Postman example
         ];
         
-        $postUrl = 'https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net/api/reviews/' . 
-                  (($type === 'pelicula') ? 'peliculas' : 'sedes');
+        $postUrl = 'https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net/api/review/' . $type;
         error_log("Sending POST to $postUrl with data: " . print_r($data, true));
         $response = makeApiRequest($postUrl, 'POST', $data);
         
