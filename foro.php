@@ -5,7 +5,7 @@ session_start();
 // Conexión a la base de datos SQL
 $serverName = "database-zynemaxplus-server.database.windows.net";
 $connectionInfo = [
-    "Database" => "database-zynemaxplus-server", 
+    "Database" => "database-zynemaxplus-server",
     "UID" => "zynemaxplus",
     "PWD" => "grupo2_1al10",
     "Encrypt" => true,
@@ -75,14 +75,24 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
     $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
     $comment = filter_input(INPUT_POST, 'comment', FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
     $rating = filter_input(INPUT_POST, 'rating', FILTER_VALIDATE_INT);
+
     if ($type && $id && $comment && $rating && in_array($type, ['pelicula', 'sede']) && $rating >= 1 && $rating <= 5) {
-        $data = ['dni' => (string)$_SESSION['dni'], 'nombre' => $_SESSION['nombre'], 'comentario' => $comment, 'puntuacion' => $rating, 'id' => (string)$id];
-        $postUrl = $apiBaseUrl . $type; // Enviar reseña a NoSQL vía API
+        $data = [
+            'dni' => (string)$_SESSION['dni'],
+            'nombre' => $_SESSION['nombre'],
+            'comentario' => $comment,
+            'puntuacion' => $rating,
+            'id' => (string)$id
+        ];
+        $postUrl = "https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net/api/review/" . $type;
         $response = makeApiRequest($postUrl, 'POST', $data);
+
         if ($response['http_code'] === 201) {
             header("Location: foro.php?success=1");
             exit();
         } else {
+            // Debug: Mostrar el código de estado y respuesta para diagnóstico
+            error_log("Error POST: HTTP Code " . $response['http_code'] . ", Response: " . json_encode($response['response']));
             header("Location: foro.php?error=1");
             exit();
         }
