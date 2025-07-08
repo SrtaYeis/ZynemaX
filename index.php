@@ -99,11 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="page-container">
         <header class="main-header">
             <a href="index.php" class="logo">ZYNEMAX+</a>
-            <div class="hamburger">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
             <nav class="main-nav">
                 <a href="index.php" class="active">INICIO</a>
                 <a href="foro.php">FORO</a>
@@ -171,25 +166,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         <?php if(isset($_POST['register']) || (isset($_GET['error']) && in_array($_GET['error'], [1,2]))) echo "showTab('register');"; ?>
         <?php if(isset($_GET['register_success'])) echo "showTab('login');"; ?>
-
-        // JavaScript para el menú hamburguesa
-        document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger');
-            const navMenu = document.querySelector('.main-nav');
-
-            hamburger.addEventListener('click', function() {
-                navMenu.classList.toggle('active');
-                hamburger.classList.toggle('active');
-            });
-
-            // Cerrar el menú si se hace clic fuera
-            document.addEventListener('click', function(event) {
-                if (!hamburger.contains(event.target) && !navMenu.contains(event.target)) {
-                    navMenu.classList.remove('active');
-                    hamburger.classList.remove('active');
-                }
-            });
-        });
     </script>
 </body>
 </html>
