@@ -210,16 +210,16 @@ body {
 }
 
 /* --- SIMULACIÓN DE IMÁGENES DE PELÍCULA ÚNICAS --- */
-#movie-1001 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1579514271813-659708035118?w=500'); }
-#movie-1002 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500'); }
-#movie-1003 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1627843563095-2df97826248b?w=500'); }
-#movie-1004 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=500'); }
-#movie-1005 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1543536448-d209d2d13a1c?w=500'); }
-#movie-1006 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1578632767115-e11a68133a15?w=500'); }
-#movie-1007 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1509347528434-a15ac5f945a9?w=500'); }
-#movie-1008 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1594904351932-3b0d3a73a391?w=500'); }
-#movie-1009 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=500'); }
-#movie-1010 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1535016120720-40c646be5580?w=500'); }
+#movie-1001 .card-image-placeholder { background-image: url('https://es.web.img3.acsta.net/r_1280_720/pictures/19/05/21/13/37/4885388.jpg'); }
+#movie-1002 .card-image-placeholder { background-image: url('https://xl.movieposterdb.com/09_05/2005/406375/xl_406375_d9be7c24.jpg?v=2022-10-24%2022:56:45'); }
+#movie-1003 .card-image-placeholder { background-image: url('https://www.benitomovieposter.com/catalog/images/movieposter/141621.jpg'); }
+#movie-1004 .card-image-placeholder { background-image: url('https://pics.filmaffinity.com/from_paris_with_love-438241440-large.jpg'); }
+#movie-1005 .card-image-placeholder { background-image: url('https://www.lavanguardia.com/peliculas-series/images/movie/poster/2017/7/w300/rh8JmK2Hs3Qso8MWw5k0JPLMKDB.jpg'); }
+#movie-1006 .card-image-placeholder { background-image: url('https://pics.filmaffinity.com/treasure_raiders_forsazh_da_vinchi-499565268-large.jpg'); }
+#movie-1007 .card-image-placeholder { background-image: url('https://diariodevenusville.com/wp-content/uploads/2024/06/SOMBRAS-DEL-PASADO-poster-2.jpg'); }
+#movie-1008 .card-image-placeholder { background-image: url('https://www.barfutura.com/wp-content/uploads/2019/03/APESARDETODO_CARTEL_VERTICAL_ONLINE_WEBBAR.jpg'); }
+#movie-1009 .card-image-placeholder { background-image: url('https://www.lavanguardia.com/files/content_image_mobile_filter/uploads/2021/09/22/614b484dee54a.jpeg'); }
+#movie-1010 .card-image-placeholder { background-image: url('https://pics.filmaffinity.com/until_dawn-880447124-mmed.jpg'); }
 
 /* --- FORMULARIOS Y BOTONES GENERALES --- */
 input, select, textarea {
