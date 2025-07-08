@@ -1,4 +1,4 @@
-/* --- ZYNEMAX+ STYLES V4 (CORREGIDO Y COMPATIBLE) --- */
+/* --- ZYNEMAX+ STYLES V4.1 (COMPLETO Y FINAL) --- */
 /* Autor de la mejora: Asistente de IA */
 /* Replicando wireframes con la lógica PHP del usuario */
 
@@ -199,6 +199,7 @@ body {
     color: var(--color-primario);
     margin: 0 0 1rem;
     font-size: 1.3rem;
+    min-height: 40px; /* Para alinear títulos de varias líneas */
 }
 .card-content p {
     margin: 0.2rem 0;
@@ -259,7 +260,7 @@ button:hover, .button:hover {
     padding: 2.5rem;
     margin: 2rem auto;
     border-radius: 15px;
-    border: 3px solid var(--color-borde, var(--color-primario));
+    border: 3px solid var(--color-primario);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     max-width: 800px;
 }
@@ -270,6 +271,13 @@ button:hover, .button:hover {
     margin-top: 0;
     font-size: 2rem;
     text-align: center;
+}
+.selection-item {
+    border-bottom: 1px solid #ddd;
+    padding: 1rem 0;
+}
+.selection-item:last-child {
+    border-bottom: none;
 }
 
 /* --- FOOTER --- */
