@@ -1,161 +1,302 @@
+/* --- ZYNEMAX+ STYLES --- */
+/* Autor de la mejora: Asistente de IA */
+/* Basado en los wireframes proporcionados */
+
+/* --- PALETA DE COLORES PRINCIPAL --- */
+:root {
+    --color-primario: #A7272A; /* Rojo oscuro/vino */
+    --color-fondo-principal: #F5F0E6; /* Beige claro */
+    --color-texto-claro: #FFFFFF;
+    --color-texto-oscuro: #3d3d3d;
+    --color-borde: #A7272A;
+}
+
+/* --- ESTILOS GENERALES Y FONDO --- */
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+    /* Fondo principal con la imagen que solicitaste y un degradado oscuro para legibilidad */
+    background: linear-gradient(rgba(40, 0, 0, 0.7), rgba(40, 0, 0, 0.7)), url('https://i0.wp.com/efe.com/wp-content/uploads/2024/03/OBJ_20240328T213505S0012I_1_299_1_15_3_1.jpg?fit=1920%2C1080&ssl=1');
     background-size: cover;
     background-attachment: fixed;
-    color: #fff;
+    background-position: center;
+    color: var(--color-texto-claro);
 }
+
+/* --- CABECERA Y NAVEGACIÓN --- */
+/* Unificando el estilo de header y nav para que parezcan una sola barra */
+header, nav {
+    background-color: var(--color-primario);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Para que sea responsive en pantallas pequeñas */
+}
+
+/* Quitamos el padding inferior del header para que se junte con el nav */
 header {
-    background-color: #1a1a1a;
-    padding: 1rem;
-    text-align: center;
-    border-bottom: 3px solid #b22222;
+    padding-bottom: 0;
 }
+/* Quitamos el padding superior del nav */
+nav {
+    padding-top: 0;
+    justify-content: flex-end; /* Alinea los links a la derecha */
+}
+
 header h1 {
     margin: 0;
     font-size: 2.5rem;
-    color: #ffd700;
+    color: var(--color-texto-claro);
+    font-weight: bold;
 }
-nav {
-    background-color: #333;
-    padding: 1rem;
-    text-align: center;
-}
+
 nav a {
-    color: #ffd700;
+    color: var(--color-texto-claro);
     text-decoration: none;
-    margin: 0 1.5rem;
+    margin: 0.5rem 1rem;
     font-weight: bold;
     font-size: 1.1rem;
+    padding-bottom: 5px;
+    border-bottom: 2px solid transparent; /* Efecto hover sutil */
+    transition: border-color 0.3s;
 }
+
 nav a:hover {
-    color: #b22222;
+    border-bottom-color: var(--color-texto-claro);
 }
+
+/* Estilo especial para el botón "Iniciar Sesión" o "Logout" */
+nav a[href*="login"], nav a[href*="logout"], nav a.button-style {
+    background-color: var(--color-fondo-principal);
+    color: var(--color-primario);
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    border-bottom: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+nav a[href*="login"]:hover, nav a[href*="logout"]:hover, nav a.button-style:hover {
+    background-color: #fff;
+    color: #800000; /* Un rojo más oscuro al pasar el mouse */
+}
+
+
+/* --- CONTENEDORES PRINCIPALES --- */
 .container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 1rem;
 }
+
+/* Contenedor de secciones como "Reseñas" o "Selecciona Película" */
 .section {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2rem;
+    background: var(--color-fondo-principal);
+    color: var(--color-texto-oscuro);
+    padding: 2.5rem;
     margin-bottom: 2rem;
-    border-radius: 10px;
-    backdrop-filter: blur(5px);
-    border: 1px solid #b22222;
-}
-.section h2 {
-    color: #ffd700;
-    border-bottom: 2px solid #b22222;
-    padding-bottom: 0.5rem;
-}
-.auth-section {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-.form-container {
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-    padding: 2rem;
-    border-radius: 10px;
-    max-width: 400px;
-    margin: 0 auto;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-}
-.form-container h2 {
-    color: #b22222;
-    margin-bottom: 1rem;
-}
-input, select, textarea {
-    width: 100%;
-    padding: 0.5rem;
-    margin: 0.5rem 0;
-    border: 1px solid #b22222;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-button {
-    background-color: #b22222;
-    color: #fff;
-    padding: 0.7rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 0.5rem;
-}
-button:hover {
-    background-color: #8b0000;
-}
-.welcome-message {
-    text-align: center;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2rem;
-    border-radius: 10px;
-    margin-bottom: 2rem;
-}
-.welcome-message h2 {
-    color: #ffd700;
-}
-footer {
-    background-color: #1a1a1a;
-    padding: 1rem;
-    text-align: center;
-    border-top: 3px solid #b22222;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
+    border-radius: 15px;
+    border: 3px solid var(--color-borde);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* Estilos para la cartelera */
+.section h2 {
+    color: var(--color-primario);
+    border-bottom: 2px solid var(--color-primario);
+    padding-bottom: 1rem;
+    margin-top: 0;
+    font-size: 2rem;
+    text-align: center;
+}
+
+/* --- FORMULARIOS (LOGIN, REGISTRO, PERFIL, ETC.) --- */
+.form-container {
+    background: var(--color-fondo-principal);
+    color: var(--color-primario);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 5px solid var(--color-primario);
+    max-width: 450px;
+    margin: 2rem auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.form-container h2, .form-container h3 {
+    color: var(--color-primario);
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0 1rem 0;
+    border: 2px solid #ccc;
+    background-color: #f0e9e0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: var(--color-texto-oscuro);
+    font-size: 1rem;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--color-primario);
+    outline: none;
+}
+
+button {
+    background-color: var(--color-primario);
+    color: var(--color-texto-claro);
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    width: 100%;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #800000; /* Rojo más oscuro */
+}
+
+/* --- ESTILOS PARA LA CARTELERA (MOVIE GRID) --- */
 .movie-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1rem;
+    gap: 2rem;
+    margin-top: 2rem;
 }
+
 .movie-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    background: var(--color-fondo-principal);
+    border-radius: 15px;
     overflow: hidden;
-    border: 1px solid #b22222;
-    transition: transform 0.2s;
+    border: 3px solid var(--color-borde);
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
 }
+
 .movie-card:hover {
-    transform: scale(1.05);
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
 }
+
 .movie-image {
     width: 100%;
-    height: 300px;
-    background: #333;
-    overflow: hidden;
+    height: 370px; /* Altura estándar para posters de películas */
+    /* Imagen de placeholder. La URL se cambiará dinámicamente */
+    background-image: url('https://via.placeholder.com/250x370/cccccc/808080?text=ZynemaX');
+    background-size: cover;
+    background-position: center;
 }
+/* Ocultamos la etiqueta img si existe, ya que usamos el background-image */
 .movie-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+   display: none;
 }
+
 .movie-info {
-    padding: 1rem;
+    padding: 1.5rem;
+    color: var(--color-texto-oscuro);
+    flex-grow: 1; /* Para que todos los cards tengan la misma altura */
+    display: flex;
+    flex-direction: column;
 }
+
 .movie-info h3 {
-    color: #ffd700;
+    color: var(--color-primario);
     margin: 0 0 0.5rem;
+    font-size: 1.2rem;
 }
+
 .movie-info p {
     margin: 0.3rem 0;
-    color: #fff;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
-///WA
-.form-container hr {
-    border: 1px solid #b22222;
-    margin: 1rem 0;
+.movie-info .price {
+    font-weight: bold;
+    color: var(--color-primario);
+    margin-top: auto; /* Empuja el precio y botón al final */
+    font-size: 1.1rem;
 }
 
-.form-container h3 {
-    color: #b22222;
+/* El botón dentro de la tarjeta de película */
+.movie-card button {
+    margin-top: 1rem;
+    width: 100%;
+}
+
+/* --- ESTILOS PARA EL FOOTER --- */
+footer {
+    background-color: var(--color-primario);
+    padding: 1.5rem;
     text-align: center;
-    margin-bottom: 1rem;
+    color: var(--color-texto-claro);
+    /* Ya no es fijo para no superponerse con el contenido */
+    position: relative;
+    width: 100%;
+    margin-top: 3rem; /* Espacio antes del footer */
+    box-sizing: border-box;
+}
+
+/* --- OTROS ESTILOS (PERFIL, RESUMEN DE COMPRA, ETC.) --- */
+/* Mensaje de bienvenida o títulos principales en el centro */
+.welcome-message {
+    text-align: center;
+    padding: 3rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.welcome-message h2 {
+    font-size: 3rem;
+    color: #fff;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Estilos para la vista de selección de butacas */
+.seat-selection-container {
+    background: var(--color-fondo-principal);
+    border: 3px solid var(--color-borde);
+    border-radius: 15px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.seat-row {
+    display: flex;
+    margin: 5px 0;
+}
+.seat {
+    background-color: #ddd;
+    width: 30px;
+    height: 30px;
+    margin: 3px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.seat.selected {
+    background-color: var(--color-primario);
+}
+.seat.occupied {
+    background-color: #666;
+    cursor: not-allowed;
+}
+.screen {
+    background-color: #333;
+    color: white;
+    padding: 0.5rem;
+    width: 80%;
+    margin: 2rem 0;
+    text-align: center;
+    border-radius: 5px;
 }
