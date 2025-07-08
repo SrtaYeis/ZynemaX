@@ -1,4 +1,4 @@
-/* --- ZYNEMAX+ STYLES V3 (FINAL Y COMPLETO) --- */
+/* --- ZYNEMAX+ STYLES V3.1 (PARA PHP) --- */
 /* Autor de la mejora: Asistente de IA */
 /* Replicando wireframes con integración de datos */
 
@@ -71,7 +71,7 @@ body {
     transition: border-color 0.3s;
 }
 
-.main-nav a:hover {
+.main-nav a:hover, .main-nav a.active {
     border-bottom-color: var(--color-texto-claro);
 }
 
@@ -156,6 +156,26 @@ body {
     font-size: 1.5rem;
 }
 
+.form-overlay .form-tabs {
+    display: flex;
+    margin-bottom: 1.5rem;
+}
+
+.form-overlay .tab-link {
+    flex: 1;
+    padding: 0.8rem;
+    text-align: center;
+    background-color: #e0d8cc;
+    color: var(--color-primario);
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+}
+.form-overlay .tab-link.active {
+    background-color: var(--color-primario);
+    color: var(--color-texto-claro);
+}
+
 /* --- TARJETAS (PELÍCULAS, SEDES, ETC.) --- */
 .card-grid {
     display: grid;
@@ -188,7 +208,7 @@ body {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Para que el contenido ocupe el espacio restante */
+    flex-grow: 1;
 }
 
 .card-content h3 {
@@ -203,12 +223,12 @@ body {
     font-size: 0.9rem;
 }
 
-.card-content button {
+.card-content .button {
     margin-top: auto; /* Empuja el botón al final de la tarjeta */
 }
 
 
-/* --- SIMULACIÓN DE IMÁGENES DE PELÍCULA ÚNICAS (LA MAGIA ESTÁ AQUÍ) --- */
+/* --- SIMULACIÓN DE IMÁGENES DE PELÍCULA ÚNICAS --- */
 #movie-1001 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1579514271813-659708035118?w=500'); }
 #movie-1002 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500'); }
 #movie-1003 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1627843563095-2df97826248b?w=500'); }
@@ -255,6 +275,25 @@ button, .button {
 button:hover, .button:hover {
     background-color: #800000;
 }
+
+/* --- MENSAJES DE ERROR/ÉXITO --- */
+.message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    text-align: center;
+}
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
 
 /* --- FOOTER --- */
 .main-footer {
