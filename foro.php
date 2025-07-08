@@ -9,6 +9,8 @@ function makeApiRequest($url, $method = 'GET', $data = null) {
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30); // 30-second timeout
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // 10-second connect timeout
     
     if ($method === 'POST' || $method === 'PUT') {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
@@ -16,6 +18,9 @@ function makeApiRequest($url, $method = 'GET', $data = null) {
     }
     
     $response = curl_exec($ch);
+    if ($response === false) {
+        error_log("cURL Error: " . curl_error($ch));
+    }
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     
@@ -27,14 +32,14 @@ $apiBaseUrl = 'https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net
 $movieReviews = [];
 $venueReviews = [];
 
-$movieResponse = makeApiRequest($apiBaseUrl . 'pelicula');
+$movieResponse = makeApiRequest($apiBaseUrl . 'peliculas');
 if ($movieResponse['http_code'] === 200) {
     $movieReviews = $movieResponse['response'];
 } else {
     error_log("Error al obtener reseñas de películas: " . print_r($movieResponse['response'], true));
 }
 
-$venueResponse = makeApiRequest($apiBaseUrl . 'sede');
+$venueResponse = makeApiRequest($apiBaseUrl . 'sedes');
 if ($venueResponse['http_code'] === 200) {
     $venueReviews = $venueResponse['response'];
 } else {
@@ -54,20 +59,26 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
             'nombre' => $_SESSION['nombre'],
             'comentario' => $comment,
             'puntuacion' => $rating,
-            'id' => $id
+            'id' => $id,
+            'timestamp' => date('c')
         ];
         
-        $response = makeApiRequest($apiBaseUrl . $type, 'POST', $data);
+        $endpoint = ($type === 'pelicula') ? 'peliculas' : 'sedes';
+        error_log("Sending POST to /api/reviews/$endpoint with data: " . print_r($data, true));
+        $response = makeApiRequest($apiBaseUrl . $endpoint, 'POST', $data);
+        
+        error_log("API Response - HTTP Code: " . $response['http_code'] . ", Response: " . print_r($response['response'], true));
         
         if ($response['http_code'] === 201) {
             header("Location: foro.php?success=1");
             exit();
         } else {
-            error_log("Error al enviar reseña: " . print_r($response['response'], true));
+            error_log("Error al enviar reseña: HTTP Code " . $response['http_code'] . ", Details: " . print_r($response['response'], true));
             header("Location: foro.php?error=1");
             exit();
         }
     } else {
+        error_log("Invalid input: type=$type, id=$id, comment=$comment, rating=$rating");
         header("Location: foro.php?error=2");
         exit();
     }
@@ -152,7 +163,7 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
                     <?php foreach ($movieReviews as $review): ?>
                         <div class="movie-card">
                             <div class="movie-info">
-                                <h3>Película ID: <?php echo htmlspecialchars($review['id_pelicula']); ?></h3>
+                                <h3>Película ID: <?php echo htmlspecialchars($review['id_pelicula'] ?? $review['id']); ?></h3>
                                 <p><strong>Usuario:</strong> <?php echo htmlspecialchars($review['nombre']); ?> (DNI: <?php echo htmlspecialchars($review['dni']); ?>)</p>
                                 <p><strong>Comentario:</strong> <?php echo htmlspecialchars($review['comentario']); ?></p>
                                 <p><strong>Puntuación:</strong> <?php echo htmlspecialchars($review['puntuacion']); ?>/5</p>
@@ -174,7 +185,7 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
                     <?php foreach ($venueReviews as $review): ?>
                         <div class="movie-card">
                             <div class="movie-info">
-                                <h3>Sede ID: <?php echo htmlspecialchars($review['id_sede']); ?></h3>
+                                <h3>Sede ID: <?php echo htmlspecialchars($review['id_sede'] ?? $review['id']); ?></h3>
                                 <p><strong>Usuario:</strong> <?php echo htmlspecialchars($review['nombre']); ?> (DNI: <?php echo htmlspecialchars($review['dni']); ?>)</p>
                                 <p><strong>Comentario:</strong> <?php echo htmlspecialchars($review['comentario']); ?></p>
                                 <p><strong>Puntuación:</strong> <?php echo htmlspecialchars($review['puntuacion']); ?>/5</p>
