@@ -6,6 +6,39 @@ if (!isset($_SESSION['dni'])) {
     header("Location: index.php");
     exit();
 }
+
+$serverName = "database-zynemaxplus-server.database.windows.net";
+$connectionInfo = ["Database" => "database-zynemaxplus-server", "UID" => "zynemaxplus", "PWD" => "grupo2_1al10", "Encrypt" => true, "TrustServerCertificate" => false];
+$conn = sqlsrv_connect($serverName, $connectionInfo);
+if ($conn === false) { die("Error de conexión."); }
+
+$dni_usuario = $_SESSION['dni'];
+$historial_compras = [];
+
+// Consulta para obtener el historial de compras del usuario
+// Ajusta la consulta SQL según la estructura de tu base de datos
+$sql_compras = "SELECT p.titulo AS pelicula, c.fecha_compra, c.hora_funcion, c.cantidad_entradas, c.total_pagado 
+                FROM compras c
+                JOIN peliculas p ON c.id_pelicula = p.id_pelicula
+                WHERE c.dni_usuario = ?
+                ORDER BY c.fecha_compra DESC";
+
+if ($stmt = $conexion->prepare($sql_compras)) {
+    $stmt->bind_param("s", $dni_usuario);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $historial_compras[] = $row;
+    }
+    $stmt->close();
+} else {
+    // Manejar el error de la consulta preparada
+    error_log("Error al preparar la consulta de compras: " . $conexion->error);
+}
+
+// Cerrar la conexión a la base de datos
+$conexion->close();
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -14,6 +47,44 @@ if (!isset($_SESSION['dni'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Perfil - ZynemaX+</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos básicos para el historial de compras */
+        .purchase-history-container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #eee;
+        }
+        .purchase-history-container h2 {
+            color: #ffb400;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .purchase-item {
+            background-color: #444;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .purchase-item p {
+            margin: 5px 0;
+            flex: 1; /* Allow items to grow and shrink */
+            min-width: 150px; /* Minimum width before wrapping */
+        }
+        .purchase-item strong {
+            color: #ffb400;
+        }
+        .no-purchases {
+            text-align: center;
+            font-style: italic;
+            color: #aaa;
+        }
+    </style>
 </head>
 <body>
     <div class="page-container">
@@ -46,7 +117,24 @@ if (!isset($_SESSION['dni'])) {
                         <p><strong>Tipo de Usuario:</strong> <?php echo htmlspecialchars(ucfirst($_SESSION['tipo_usuario'])); ?></p>
                     </div>
                 </div>
-            </div>
+
+                <div class="purchase-history-container">
+                    <h2>Historial de Compras</h2>
+                    <?php if (!empty($historial_compras)): ?>
+                        <?php foreach ($historial_compras as $compra): ?>
+                            <div class="purchase-item">
+                                <p><strong>Película:</strong> <?php echo htmlspecialchars($compra['pelicula']); ?></p>
+                                <p><strong>Fecha:</strong> <?php echo htmlspecialchars($compra['fecha_compra']); ?></p>
+                                <p><strong>Hora:</strong> <?php echo htmlspecialchars($compra['hora_funcion']); ?></p>
+                                <p><strong>Entradas:</strong> <?php echo htmlspecialchars($compra['cantidad_entradas']); ?></p>
+                                <p><strong>Total:</strong> S/.<?php echo number_format($compra['total_pagado'], 2); ?></p>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="no-purchases">No tienes compras registradas aún.</p>
+                    <?php endif; ?>
+                </div>
+                </div>
         </main>
     </div>
     <footer class="main-footer">
