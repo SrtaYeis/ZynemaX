@@ -103,69 +103,69 @@ sqlsrv_close($conn);
         .purchase-history-container {
             background-color: var(--color-primario);
             padding: 30px;
-            border-radius: 12px; /* Bordes más redondeados */
+            border-radius: 12px;
             margin-top: 40px;
-            color: var(--color-fondo-principal); /* Color de texto general de la sección */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
+            color: var(--color-fondo-principal);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
             width: 100%;
-            max-width: 750px; /* Un poco más ancho para dar espacio */
+            max-width: 750px;
             margin-left: auto;
             margin-right: auto;
-            border: 2px solid var(--color-primario); /* Borde primario para destacar */
+            border: 2px solid var(--color-primario);
         }
         .purchase-history-container h2 {
-            color: #F5F0E6; /* Título en color primario (rojo/vino) */
+            color: #F5F0E6;
             margin-bottom: 30px;
             text-align: center;
-            font-size: 2.5em; /* Título más grande */
+            font-size: 2.5em;
             padding-bottom: 15px;
-            border-bottom: 3px solid var(--color-primario); /* Línea inferior más gruesa */
+            border-bottom: 3px solid var(--color-primario);
             text-transform: uppercase;
-            letter-spacing: 2px; /* Mayor espacio entre letras */
-            font-weight: 700; /* Más negrita */
+            letter-spacing: 2px;
+            font-weight: 700;
         }
         .purchase-item {
-            background-color: #3d3d3d; /* Fondo más oscuro para cada item, contrastando con el contenedor */
+            background-color: #3d3d3d;
             padding: 22px;
-            border-radius: 10px; /* Bordes redondeados para cada tarjeta de compra */
-            margin-bottom: 25px; /* Más espacio entre items */
+            border-radius: 10px;
+            margin-bottom: 25px;
             display: flex;
             flex-direction: column;
-            gap: 12px; /* Más espacio entre los detalles */
-            border: 1px solid #666; /* Borde sutil para cada item */
+            gap: 12px;
+            border: 1px solid #666;
             transition: all 0.3s ease;
-            position: relative; /* Para posibles elementos decorativos */
+            position: relative;
         }
         .purchase-item:hover {
-            background-color: #d39394; /* Ligeramente más claro al pasar el ratón */
-            transform: translateY(-5px); /* Efecto de elevación más notorio */
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); /* Sombra más fuerte al pasar el ratón */
+            background-color: #d39394;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
         }
         .purchase-item:last-child {
             margin-bottom: 0;
         }
         .purchase-item p {
             margin: 0;
-            color: var(--color-texto-oscuro); /* Texto principal de los detalles */
+            color: var(--color-texto-oscuro);
             font-size: 1.1em;
             line-height: 1.5;
             display: flex;
             justify-content: space-between;
-            align-items: center; /* Alinea verticalmente los items */
-            flex-wrap: wrap; /* Permite que los elementos se envuelvan si el espacio es limitado */
+            align-items: center;
+            flex-wrap: wrap;
         }
         .purchase-item strong {
-            color: #FFFFFF; /* Etiquetas en color primario */
+            color: #FFFFFF;
             font-weight: bold;
             flex-shrink: 0;
             margin-right: 15px;
-            min-width: 140px; /* Ancho mínimo para las etiquetas para una mejor alineación */
+            min-width: 140px;
             text-align: left;
         }
         .purchase-item span.value {
             flex-grow: 1;
-            text-align: right; /* Alinea el valor a la derecha */
-            color: #f5f0e6; /* Un blanco puro para los valores */
+            text-align: right;
+            color: #f5f0e6;
             font-weight: 500;
         }
         .no-purchases {
@@ -174,9 +174,9 @@ sqlsrv_close($conn);
             color: #aaa;
             padding: 40px;
             font-size: 1.2em;
-            background-color: #444; /* Un fondo oscuro para el mensaje de "no compras" */
+            background-color: #444;
             border-radius: 10px;
-            border: 1px dashed var(--color-primario); /* Borde punteado para este mensaje */
+            border: 1px dashed var(--color-primario);
         }
     </style>
 </head>
@@ -214,25 +214,40 @@ sqlsrv_close($conn);
 
                 <div class="purchase-history-container">
                     <h2>Historial de Compras</h2>
-                    <?php if (!empty($historial_compras)): ?>
-                        <?php foreach ($historial_compras as $compra): ?>
-                            <div class="purchase-item">
-                                <p><strong>Película:</strong> <span class="value"><?php echo htmlspecialchars($compra['pelicula']); ?></span></p>
-                                <p><strong>Fecha de Compra:</strong> <span class="value"><?php echo htmlspecialchars($compra['fecha_pago_formatted']); ?></span></p>
-                                <p><strong>Entradas:</strong> <span class="value"><?php echo htmlspecialchars($compra['cantidad_entradas']); ?></span></p>
-                                <p><strong>Butacas:</strong> <span class="value"><?php echo htmlspecialchars($compra['butacas_compradas'] ?? 'N/A'); ?></span></p>
-                                <p><strong>Total Pagado:</strong> <span class="value">S/.<?php echo number_format($compra['total_pagado'], 2); ?></span></p>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p class="no-purchases">No tienes compras registradas aún.</p>
-                    <?php endif; ?>
+                    <button id="toggle-history" class="button" style="max-width: 250px; margin: 0 auto 1rem auto; display: block;">Mostrar Historial</button>
+                    <div id="purchase-history-content" style="display: none;">
+                        <?php if (!empty($historial_compras)): ?>
+                            <?php foreach ($historial_compras as $compra): ?>
+                                <div class="purchase-item">
+                                    <p><strong>Película:</strong> <span class="value"><?php echo htmlspecialchars($compra['pelicula']); ?></span></p>
+                                    <p><strong>Fecha de Compra:</strong> <span class="value"><?php echo htmlspecialchars($compra['fecha_pago_formatted']); ?></span></p>
+                                    <p><strong>Entradas:</strong> <span class="value"><?php echo htmlspecialchars($compra['cantidad_entradas']); ?></span></p>
+                                    <p><strong>Butacas:</strong> <span class="value"><?php echo htmlspecialchars($compra['butacas_compradas'] ?? 'N/A'); ?></span></p>
+                                    <p><strong>Total Pagado:</strong> <span class="value">S/.<?php echo number_format($compra['total_pagado'], 2); ?></span></p>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p class="no-purchases">No tienes compras registradas aún.</p>
+                        <?php endif; ?>
+                    </div>
                 </div>
-                </div>
+            </div>
         </main>
     </div>
     <footer class="main-footer">
         <p>© 2025 Zynemax+ | Todos los derechos reservados | Dibujitos al mando</p>
     </footer>
+    <script>
+        document.getElementById('toggle-history').addEventListener('click', function() {
+            const content = document.getElementById('purchase-history-content');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                this.textContent = 'Ocultar Historial';
+            } else {
+                content.style.display = 'none';
+                this.textContent = 'Mostrar Historial';
+            }
+        });
+    </script>
 </body>
 </html>
