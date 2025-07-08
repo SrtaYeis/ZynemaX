@@ -161,6 +161,11 @@ $title_map = [
     <div class="page-container">
         <header class="main-header">
             <a href="pelicula.php" class="logo">ZYNEMAX+</a>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
             <nav class="main-nav">
                 <a href="perfil.php">PERFIL</a>
                 <a href="pelicula.php" class="active">PELÍCULAS</a>
@@ -248,7 +253,6 @@ $title_map = [
                         <form method="POST" action="pelicula.php">
                             <div class="seat-grid">
                                 <?php
-                                // Obtener TODAS las butacas de la sala para saber la estructura
                                 $sql_all = "SELECT id_butaca, fila, numero_butaca FROM Butaca WHERE id_sala = ? ORDER BY fila DESC, numero_butaca ASC";
                                 $stmt_all = sqlsrv_query($conn, $sql_all, [$_SESSION['selected_sala']]);
                                 $all_seats = [];
@@ -256,7 +260,6 @@ $title_map = [
                                     $all_seats[$row['fila']][$row['numero_butaca']] = $row['id_butaca'];
                                 }
                                 
-                                // Obtener las butacas OCUPADAS
                                 $sql_occupied = "SELECT rb.id_butaca FROM Reserva_butaca rb JOIN Reserva_funcion rf ON rb.id_reserva_funcion = rf.id_reserva_funcion WHERE rf.id_funcion = ?";
                                 $stmt_occupied = sqlsrv_query($conn, $sql_occupied, [$_SESSION['function_id']]);
                                 $occupied_seats_ids = [];
@@ -264,7 +267,6 @@ $title_map = [
                                     $occupied_seats_ids[] = $row['id_butaca'];
                                 }
                                 
-                                // Dibujar la rejilla
                                 foreach ($all_seats as $fila => $butacas):
                                 ?>
                                 <div class="seat-row">
@@ -419,6 +421,27 @@ $title_map = [
         });
     </script>
     <?php endif; ?>
+    <script>
+        // JavaScript para el menú hamburguesa
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.main-nav');
+
+            hamburger.addEventListener('click', function() {
+                navMenu.classList.toggle('active');
+                // Animación de las barras del hamburguesa (opcional)
+                hamburger.classList.toggle('active');
+            });
+
+            // Cerrar el menú si se hace clic fuera
+            document.addEventListener('click', function(event) {
+                if (!hamburger.contains(event.target) && !navMenu.contains(event.target)) {
+                    navMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+                }
+            });
+        });
+    </script>
     <?php sqlsrv_close($conn); ?>
 </body>
 </html>
