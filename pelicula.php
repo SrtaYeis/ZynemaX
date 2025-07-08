@@ -30,7 +30,6 @@ if (isset($_POST['select_sala'])) {
     if ($sala_id && $funcion_id && $sala_name) {
         $dni_usuario = $_SESSION['dni'];
         $fecha_reserva = date('Y-m-d H:i:s');
-        // Usamos SCOPE_IDENTITY() de una manera más robusta que es compatible con más configuraciones de SQL Server.
         $sql = "INSERT INTO Reserva (dni_usuario, fecha_reserva) VALUES (?, ?); SELECT SCOPE_IDENTITY() AS id;";
         $params = [$dni_usuario, $fecha_reserva];
         $stmt = sqlsrv_query($conn, $sql, $params);
@@ -131,9 +130,51 @@ $title_map = [
                         </div>
                         <?php endwhile; sqlsrv_free_stmt($stmt); ?>
                     </div>
+                <?php elseif ($step === 'butaca'): ?>
+                    <div class="seating-chart-container">
+                        <div class="screen">PANTALLA</div>
+                        <form method="POST" action="pelicula.php">
+                            <div class="seat-grid">
+                                <?php
+                                // Obtener TODAS las butacas de la sala para saber la estructura
+                                $sql_all = "SELECT id_butaca, fila, numero_butaca FROM Butaca WHERE id_sala = ? ORDER BY fila DESC, numero_butaca ASC";
+                                $stmt_all = sqlsrv_query($conn, $sql_all, [$_SESSION['selected_sala']]);
+                                $all_seats = [];
+                                while ($row = sqlsrv_fetch_array($stmt_all, SQLSRV_FETCH_ASSOC)) {
+                                    $all_seats[$row['fila']][$row['numero_butaca']] = $row['id_butaca'];
+                                }
+                                
+                                // Obtener las butacas OCUPADAS
+                                $sql_occupied = "SELECT rb.id_butaca FROM Reserva_butaca rb JOIN Reserva_funcion rf ON rb.id_reserva_funcion = rf.id_reserva_funcion WHERE rf.id_funcion = ?";
+                                $stmt_occupied = sqlsrv_query($conn, $sql_occupied, [$_SESSION['function_id']]);
+                                $occupied_seats_ids = [];
+                                while ($row = sqlsrv_fetch_array($stmt_occupied, SQLSRV_FETCH_ASSOC)) {
+                                    $occupied_seats_ids[] = $row['id_butaca'];
+                                }
+                                
+                                // Dibujar la rejilla
+                                foreach ($all_seats as $fila => $butacas):
+                                ?>
+                                <div class="seat-row">
+                                    <div class="seat-row-label"><?php echo htmlspecialchars($fila); ?></div>
+                                    <?php foreach ($butacas as $numero => $id_butaca): 
+                                        $is_occupied = in_array($id_butaca, $occupied_seats_ids);
+                                    ?>
+                                        <label class="seat-button <?php echo $is_occupied ? 'occupied' : ''; ?>">
+                                            <input type="radio" name="butaca_id" value="<?php echo $id_butaca; ?>" class="seat-input" <?php echo $is_occupied ? 'disabled' : ''; ?>>
+                                            <?php echo $numero; ?>
+                                        </label>
+                                    <?php endforeach; ?>
+                                    <div class="seat-row-label"><?php echo htmlspecialchars($fila); ?></div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <button type="submit" name="select_butaca" class="button" style="margin-top: 2rem;">Confirmar Butaca</button>
+                        </form>
+                    </div>
+
                 <?php else: ?>
                     <div class="form-container">
-                        <!-- AQUÍ SE MUESTRAN LOS DEMÁS PASOS -->
                         <?php if ($step === 'sede'):
                             $sql = "SELECT DISTINCT s.id_sede, s.ciudad_sede, s.direccion_sede FROM Sede s JOIN Sala sa ON s.id_sede = sa.id_sede JOIN Funcion f ON sa.id_sala = f.id_sala WHERE f.id_pelicula = ?";
                             $stmt = sqlsrv_query($conn, $sql, [$_SESSION['selected_movie']]);
@@ -156,17 +197,6 @@ $title_map = [
                                     <form method="POST"><input type="hidden" name="sala_id" value="<?php echo $row['id_sala']; ?>"><input type="hidden" name="funcion_id" value="<?php echo $row['id_funcion']; ?>"><input type="hidden" name="sala_name" value="<?php echo htmlspecialchars($row['nombre_sala']); ?>"><button type="submit" name="select_sala">Seleccionar</button></form>
                                 </div>
                             <?php endwhile; sqlsrv_free_stmt($stmt); ?>
-                        <?php endif; ?>
-                        
-                        <?php if ($step === 'butaca'):
-                             $sql = "SELECT b.id_butaca, b.fila, b.numero_butaca FROM Butaca b LEFT JOIN Reserva_butaca rb ON b.id_butaca = rb.id_butaca WHERE b.id_sala = ? AND rb.id_butaca IS NULL";
-                             $stmt = sqlsrv_query($conn, $sql, [$_SESSION['selected_sala']]);
-                             while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)): ?>
-                                 <div class="selection-item">
-                                    <p><strong>Fila:</strong> <?php echo htmlspecialchars($row['fila']); ?> <strong>Número:</strong> <?php echo $row['numero_butaca']; ?></p>
-                                    <form method="POST"><input type="hidden" name="butaca_id" value="<?php echo $row['id_butaca']; ?>"><button type="submit" name="select_butaca">Seleccionar</button></form>
-                                 </div>
-                             <?php endwhile; sqlsrv_free_stmt($stmt); ?>
                         <?php endif; ?>
 
                         <?php if ($step === 'summary'):
