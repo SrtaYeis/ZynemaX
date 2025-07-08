@@ -28,14 +28,15 @@ $dni_usuario = $_SESSION['dni'];
 $historial_compras = [];
 
 // Consulta SQL ajustada para tu esquema de base de datos
-// Se asume que una "compra" es una reserva de butacas para una función de película.
-// El "total_pagado" se calcula multiplicando el número de butacas reservadas por el precio de la película.
+// Incluye detalles de butacas y utiliza la fecha de pago como fecha de compra.
 $sql_compras = "
     SELECT
         P.titulo AS pelicula,
-        F.fecha_hora AS fecha_hora_funcion,
+        F.fecha_hora AS fecha_hora_funcion, -- Fecha y hora de la función de la película
         COUNT(RB.id_butaca) AS cantidad_entradas,
-        (COUNT(RB.id_butaca) * P.precio) AS total_pagado -- Calcula el total basado en entradas * precio de la película
+        (COUNT(RB.id_butaca) * P.precio) AS total_pagado,
+        STRING_AGG(CONCAT(B.fila, B.numero_butaca), ', ') AS butacas_compradas, -- Agrega las butacas compradas en una cadena
+        PG.fecha_pago AS fecha_pago -- Fecha y hora del pago real
     FROM
         Usuario U
     JOIN
@@ -46,14 +47,18 @@ $sql_compras = "
         Funcion F ON RF.id_funcion = F.id_funcion
     JOIN
         Pelicula P ON F.id_pelicula = P.id_pelicula
-    LEFT JOIN -- LEFT JOIN para asegurar que todas las reserva_funcion sean consideradas
+    LEFT JOIN -- LEFT JOIN para asegurar que todas las reserva_funcion sean consideradas, incluso si no hay butacas explícitamente ligadas (aunque debería haber)
         Reserva_butaca RB ON RF.id_reserva_funcion = RB.id_reserva_funcion
+    LEFT JOIN
+        Butaca B ON RB.id_butaca = B.id_butaca
+    LEFT JOIN
+        Pago PG ON RF.id_reserva_funcion = PG.id_reserva_funcion -- Une con la tabla Pago para obtener la fecha de pago
     WHERE
         U.dni = ?
     GROUP BY
-        P.titulo, F.fecha_hora, P.precio
+        P.titulo, F.fecha_hora, P.precio, PG.fecha_pago, RF.id_reserva_funcion -- Agrupamos por la reserva de función única y sus detalles
     ORDER BY
-        F.fecha_hora DESC;
+        PG.fecha_pago DESC;
 ";
 
 // Prepara y ejecuta la consulta usando las funciones sqlsrv
@@ -68,9 +73,14 @@ if ($stmt === false) {
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         // Las columnas DATETIME se devuelven como objetos DateTime.
         // Formateamos la fecha y hora para la visualización.
-        $fecha_hora_dt = $row['fecha_hora_funcion'];
-        $row['fecha_compra'] = $fecha_hora_dt->format('Y-m-d'); // Extrae solo la fecha
-        $row['hora_funcion'] = $fecha_hora_dt->format('H:i'); // Extrae solo la hora
+        $fecha_pago_dt = $row['fecha_pago'];
+        $fecha_funcion_dt = $row['fecha_hora_funcion'];
+
+        // Asegúrate de que las fechas no sean nulas antes de formatear
+        $row['fecha_pago_formatted'] = $fecha_pago_dt ? $fecha_pago_dt->format('Y-m-d H:i') : 'N/A';
+        $row['fecha_funcion_formatted'] = $fecha_funcion_dt ? $fecha_funcion_dt->format('Y-m-d') : 'N/A';
+        $row['hora_funcion_formatted'] = $fecha_funcion_dt ? $fecha_funcion_dt->format('H:i') : 'N/A';
+
         $historial_compras[] = $row;
     }
     sqlsrv_free_stmt($stmt); // Libera los recursos de la declaración
@@ -91,41 +101,52 @@ sqlsrv_close($conn);
     <title>Mi Perfil - ZynemaX+</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Estilos básicos para el historial de compras */
+        /* Estilos ajustados para el historial de compras */
         .purchase-history-container {
-            background-color: #333;
-            padding: 20px;
+            background-color: #3d3d3d; /* Un poco más oscuro que el fondo principal */
+            padding: 25px;
             border-radius: 8px;
-            margin-top: 20px;
-            color: #eee;
+            margin-top: 30px;
+            color: #f5f0e6; /* Color de texto claro */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .purchase-history-container h2 {
-            color: #ffb400;
-            margin-bottom: 20px;
+            color: #ffb400; /* Naranja/dorado para los títulos */
+            margin-bottom: 25px;
             text-align: center;
+            font-size: 1.8em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #a7272a; /* Línea de separación bajo el título */
         }
         .purchase-item {
-            background-color: #444;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 10px;
+            background-color: #4a4a4a; /* Fondo para cada item de compra */
+            padding: 18px;
+            border-radius: 6px;
+            margin-bottom: 15px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
+            flex-direction: column; /* Apila los detalles verticalmente */
+            gap: 8px; /* Espacio entre los párrafos */
+            border: 1px solid #555; /* Borde sutil */
+        }
+        .purchase-item:last-child {
+            margin-bottom: 0; /* No hay margen inferior para el último item */
         }
         .purchase-item p {
-            margin: 5px 0;
-            flex: 1; /* Permite que los elementos crezcan y se encojan */
-            min-width: 150px; /* Ancho mínimo antes de envolver */
+            margin: 0; /* Elimina el margen predeterminado de los párrafos */
+            color: #e0e0e0; /* Color de texto ligeramente más claro */
+            font-size: 0.95em;
+            line-height: 1.4;
         }
         .purchase-item strong {
-            color: #ffb400;
+            color: #ffb400; /* Naranja/dorado para las etiquetas */
+            min-width: 90px; /* Asegura alineación si es necesario */
+            display: inline-block; /* Permite que el strong tenga un ancho fijo */
         }
         .no-purchases {
             text-align: center;
             font-style: italic;
             color: #aaa;
+            padding: 20px;
         }
     </style>
 </head>
@@ -167,10 +188,11 @@ sqlsrv_close($conn);
                         <?php foreach ($historial_compras as $compra): ?>
                             <div class="purchase-item">
                                 <p><strong>Película:</strong> <?php echo htmlspecialchars($compra['pelicula']); ?></p>
-                                <p><strong>Fecha:</strong> <?php echo htmlspecialchars($compra['fecha_compra']); ?></p>
-                                <p><strong>Hora:</strong> <?php echo htmlspecialchars($compra['hora_funcion']); ?></p>
+                                <p><strong>Fecha de Compra:</strong> <?php echo htmlspecialchars($compra['fecha_pago_formatted']); ?></p>
+                                <p><strong>Función:</strong> <?php echo htmlspecialchars($compra['fecha_funcion_formatted']); ?> a las <?php echo htmlspecialchars($compra['hora_funcion_formatted']); ?></p>
                                 <p><strong>Entradas:</strong> <?php echo htmlspecialchars($compra['cantidad_entradas']); ?></p>
-                                <p><strong>Total:</strong> S/.<?php echo number_format($compra['total_pagado'], 2); ?></p>
+                                <p><strong>Butacas:</strong> <?php echo htmlspecialchars($compra['butacas_compradas'] ?? 'N/A'); ?></p>
+                                <p><strong>Total Pagado:</strong> S/.<?php echo number_format($compra['total_pagado'], 2); ?></p>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
