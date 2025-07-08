@@ -1,152 +1,240 @@
-/* --- ZYNEMAX+ STYLES --- */
+/* --- ZYNEMAX+ STYLES V3 (FINAL Y COMPLETO) --- */
 /* Autor de la mejora: Asistente de IA */
-/* Basado en los wireframes proporcionados */
+/* Replicando wireframes con integración de datos */
 
-/* --- PALETA DE COLORES PRINCIPAL --- */
+/* --- PALETA DE COLORES Y VARIABLES --- */
 :root {
     --color-primario: #A7272A; /* Rojo oscuro/vino */
     --color-fondo-principal: #F5F0E6; /* Beige claro */
     --color-texto-claro: #FFFFFF;
     --color-texto-oscuro: #3d3d3d;
-    --color-borde: #A7272A;
+    --font-principal: 'Arial', sans-serif;
 }
 
-/* --- ESTILOS GENERALES Y FONDO --- */
+/* --- ESTILO BASE Y STICKY FOOTER --- */
+html {
+    height: 100%;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: var(--font-principal);
     margin: 0;
     padding: 0;
-    /* Fondo principal con la imagen que solicitaste y un degradado oscuro para legibilidad */
-    background: linear-gradient(rgba(40, 0, 0, 0.7), rgba(40, 0, 0, 0.7)), url('https://i0.wp.com/efe.com/wp-content/uploads/2024/03/OBJ_20240328T213505S0012I_1_299_1_15_3_1.jpg?fit=1920%2C1080&ssl=1');
-    background-size: cover;
-    background-attachment: fixed;
-    background-position: center;
-    color: var(--color-texto-claro);
+    background-color: var(--color-fondo-principal);
+    color: var(--color-texto-oscuro);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Clave para el sticky footer */
 }
 
-/* --- CABECERA Y NAVEGACIÓN --- */
-/* Unificando el estilo de header y nav para que parezcan una sola barra */
-header, nav {
+/* --- ESTRUCTURA PRINCIPAL --- */
+.page-container {
+    flex: 1 0 auto; /* Permite que el contenedor crezca */
+}
+
+/* --- HEADER / BARRA DE NAVEGACIÓN --- */
+.main-header {
     background-color: var(--color-primario);
-    padding: 1rem 2rem;
+    padding: 1rem 2.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap; /* Para que sea responsive en pantallas pequeñas */
+    flex-wrap: wrap;
+    border-bottom: 2px solid rgba(0,0,0,0.1);
 }
 
-/* Quitamos el padding inferior del header para que se junte con el nav */
-header {
-    padding-bottom: 0;
-}
-/* Quitamos el padding superior del nav */
-nav {
-    padding-top: 0;
-    justify-content: flex-end; /* Alinea los links a la derecha */
-}
-
-header h1 {
-    margin: 0;
+.logo {
     font-size: 2.5rem;
     color: var(--color-texto-claro);
     font-weight: bold;
+    text-decoration: none;
 }
 
-nav a {
+.main-nav {
+    display: flex;
+    align-items: center;
+}
+
+.main-nav a {
     color: var(--color-texto-claro);
     text-decoration: none;
-    margin: 0.5rem 1rem;
+    margin: 0 1rem;
     font-weight: bold;
     font-size: 1.1rem;
     padding-bottom: 5px;
-    border-bottom: 2px solid transparent; /* Efecto hover sutil */
+    border-bottom: 2px solid transparent;
     transition: border-color 0.3s;
 }
 
-nav a:hover {
+.main-nav a:hover {
     border-bottom-color: var(--color-texto-claro);
 }
 
-/* Estilo especial para el botón "Iniciar Sesión" o "Logout" */
-nav a[href*="login"], nav a[href*="logout"], nav a.button-style {
+.nav-button {
     background-color: var(--color-fondo-principal);
-    color: var(--color-primario);
+    color: var(--color-primario) !important;
     padding: 0.6rem 1.2rem;
     border-radius: 5px;
-    border-bottom: none;
+    border-bottom: none !important;
     transition: background-color 0.3s, color 0.3s;
 }
 
-nav a[href*="login"]:hover, nav a[href*="logout"]:hover, nav a.button-style:hover {
+.nav-button:hover {
     background-color: #fff;
-    color: #800000; /* Un rojo más oscuro al pasar el mouse */
+    color: #800000 !important;
 }
 
-
-/* --- CONTENEDORES PRINCIPALES --- */
-.container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-}
-
-/* Contenedor de secciones como "Reseñas" o "Selecciona Película" */
-.section {
-    background: var(--color-fondo-principal);
-    color: var(--color-texto-oscuro);
-    padding: 2.5rem;
-    margin-bottom: 2rem;
-    border-radius: 15px;
-    border: 3px solid var(--color-borde);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.section h2 {
-    color: var(--color-primario);
-    border-bottom: 2px solid var(--color-primario);
-    padding-bottom: 1rem;
-    margin-top: 0;
-    font-size: 2rem;
+/* --- SECCIÓN HERO (IMAGEN GRANDE SUPERIOR) --- */
+.hero-section {
+    position: relative;
+    height: 50vh;
+    min-height: 400px;
+    background: url('https://i0.wp.com/efe.com/wp-content/uploads/2024/03/OBJ_20240328T213505S0012I_1_299_1_15_3_1.jpg?fit=1920%2C1080&ssl=1') no-repeat center center/cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-texto-claro);
     text-align: center;
 }
 
-/* --- FORMULARIOS (LOGIN, REGISTRO, PERFIL, ETC.) --- */
-.form-container {
-    background: var(--color-fondo-principal);
+.hero-section::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.page-title-overlay {
+    font-size: 4rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+    z-index: 2;
+}
+
+/* --- ÁREA DE CONTENIDO PRINCIPAL (FONDO BEIGE) --- */
+.content-area {
+    background-color: var(--color-fondo-principal);
+    padding: 3rem 2.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.content-title {
+    font-size: 2.5rem;
     color: var(--color-primario);
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 2rem;
+}
+
+/* --- FORMULARIO DE REGISTRO/LOGIN SOBRE EL HERO --- */
+.form-overlay {
+    position: absolute;
+    right: 5%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 400px;
+    background-color: var(--color-fondo-principal);
     padding: 2rem;
     border-radius: 15px;
     border: 5px solid var(--color-primario);
-    max-width: 450px;
-    margin: 2rem auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 3;
+    color: var(--color-primario);
 }
 
-.form-container h2, .form-container h3 {
-    color: var(--color-primario);
+.form-overlay h3 {
     text-align: center;
     margin-top: 0;
-    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
 }
 
+/* --- TARJETAS (PELÍCULAS, SEDES, ETC.) --- */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2.5rem;
+}
+
+.card {
+    background: var(--color-fondo-principal);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 3px solid var(--color-primario);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.card-image-placeholder {
+    width: 100%;
+    height: 420px; /* Altura estándar para posters */
+    background-size: cover;
+    background-position: center;
+}
+
+.card-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Para que el contenido ocupe el espacio restante */
+}
+
+.card-content h3 {
+    color: var(--color-primario);
+    margin: 0 0 1rem;
+    font-size: 1.3rem;
+}
+
+.card-content p {
+    margin: 0.2rem 0;
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.card-content button {
+    margin-top: auto; /* Empuja el botón al final de la tarjeta */
+}
+
+
+/* --- SIMULACIÓN DE IMÁGENES DE PELÍCULA ÚNICAS (LA MAGIA ESTÁ AQUÍ) --- */
+#movie-1001 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1579514271813-659708035118?w=500'); }
+#movie-1002 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500'); }
+#movie-1003 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1627843563095-2df97826248b?w=500'); }
+#movie-1004 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=500'); }
+#movie-1005 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1543536448-d209d2d13a1c?w=500'); }
+#movie-1006 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1578632767115-e11a68133a15?w=500'); }
+#movie-1007 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1509347528434-a15ac5f945a9?w=500'); }
+#movie-1008 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1594904351932-3b0d3a73a391?w=500'); }
+#movie-1009 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=500'); }
+#movie-1010 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1535016120720-40c646be5580?w=500'); }
+
+
+/* --- FORMULARIOS Y BOTONES GENERALES --- */
 input, select, textarea {
     width: 100%;
     padding: 0.8rem;
     margin: 0.5rem 0 1rem 0;
     border: 2px solid #ccc;
-    background-color: #f0e9e0;
+    background-color: #fff;
     border-radius: 8px;
     box-sizing: border-box;
     color: var(--color-texto-oscuro);
     font-size: 1rem;
 }
 
-input:focus, select:focus, textarea:focus {
-    border-color: var(--color-primario);
-    outline: none;
-}
-
-button {
+button, .button {
     background-color: var(--color-primario);
     color: var(--color-texto-claro);
     padding: 0.8rem 1.5rem;
@@ -158,145 +246,41 @@ button {
     font-size: 1.1rem;
     font-weight: bold;
     text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
     transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: #800000; /* Rojo más oscuro */
+button:hover, .button:hover {
+    background-color: #800000;
 }
 
-/* --- ESTILOS PARA LA CARTELERA (MOVIE GRID) --- */
-.movie-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.movie-card {
-    background: var(--color-fondo-principal);
-    border-radius: 15px;
-    overflow: hidden;
-    border: 3px solid var(--color-borde);
-    transition: transform 0.3s, box-shadow 0.3s;
-    display: flex;
-    flex-direction: column;
-}
-
-.movie-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-}
-
-.movie-image {
-    width: 100%;
-    height: 370px; /* Altura estándar para posters de películas */
-    /* Imagen de placeholder. La URL se cambiará dinámicamente */
-    background-image: url('https://via.placeholder.com/250x370/cccccc/808080?text=ZynemaX');
-    background-size: cover;
-    background-position: center;
-}
-/* Ocultamos la etiqueta img si existe, ya que usamos el background-image */
-.movie-image img {
-   display: none;
-}
-
-.movie-info {
-    padding: 1.5rem;
-    color: var(--color-texto-oscuro);
-    flex-grow: 1; /* Para que todos los cards tengan la misma altura */
-    display: flex;
-    flex-direction: column;
-}
-
-.movie-info h3 {
-    color: var(--color-primario);
-    margin: 0 0 0.5rem;
-    font-size: 1.2rem;
-}
-
-.movie-info p {
-    margin: 0.3rem 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
-.movie-info .price {
-    font-weight: bold;
-    color: var(--color-primario);
-    margin-top: auto; /* Empuja el precio y botón al final */
-    font-size: 1.1rem;
-}
-
-/* El botón dentro de la tarjeta de película */
-.movie-card button {
-    margin-top: 1rem;
-    width: 100%;
-}
-
-/* --- ESTILOS PARA EL FOOTER --- */
-footer {
+/* --- FOOTER --- */
+.main-footer {
+    flex-shrink: 0;
     background-color: var(--color-primario);
     padding: 1.5rem;
     text-align: center;
     color: var(--color-texto-claro);
-    /* Ya no es fijo para no superponerse con el contenido */
-    position: relative;
-    width: 100%;
-    margin-top: 3rem; /* Espacio antes del footer */
-    box-sizing: border-box;
 }
 
-/* --- OTROS ESTILOS (PERFIL, RESUMEN DE COMPRA, ETC.) --- */
-/* Mensaje de bienvenida o títulos principales en el centro */
-.welcome-message {
-    text-align: center;
-    padding: 3rem 1rem;
-    border-radius: 10px;
-    margin-bottom: 2rem;
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 992px) {
+    .form-overlay {
+        position: static;
+        transform: none;
+        width: 100%;
+        max-width: 450px;
+        margin: -80px auto 2rem auto;
+    }
+    .hero-section { min-height: 300px; height: 40vh; }
+    .content-area { padding: 1.5rem; }
 }
-
-.welcome-message h2 {
-    font-size: 3rem;
-    color: #fff;
-    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
-}
-
-/* Estilos para la vista de selección de butacas */
-.seat-selection-container {
-    background: var(--color-fondo-principal);
-    border: 3px solid var(--color-borde);
-    border-radius: 15px;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.seat-row {
-    display: flex;
-    margin: 5px 0;
-}
-.seat {
-    background-color: #ddd;
-    width: 30px;
-    height: 30px;
-    margin: 3px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-.seat.selected {
-    background-color: var(--color-primario);
-}
-.seat.occupied {
-    background-color: #666;
-    cursor: not-allowed;
-}
-.screen {
-    background-color: #333;
-    color: white;
-    padding: 0.5rem;
-    width: 80%;
-    margin: 2rem 0;
-    text-align: center;
-    border-radius: 5px;
+@media (max-width: 768px) {
+    .main-header { flex-direction: column; padding: 1rem; }
+    .main-nav { flex-direction: column; width: 100%; margin-top: 1rem; }
+    .main-nav a { margin: 0.5rem 0; padding: 0.5rem; width: 100%; text-align: center; }
+    .nav-button { width: 80%; }
+    .page-title-overlay { font-size: 2.5rem; }
 }
