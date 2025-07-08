@@ -118,9 +118,11 @@ sqlsrv_close($conn);
         <?php if (!isset($_SESSION['dni'])): ?>
             <a href="#" onclick="showForm('login')">Login</a>
             <a href="#" onclick="showForm('register')">Register</a>
+            <a href="foro.php">Foro</a>
         <?php else: ?>
             <a href="#" onclick="showForm('profile')">Perfil (<?php echo htmlspecialchars($_SESSION['nombre']); ?>)</a>
             <a href="pelicula.php">Películas</a>
+            <a href="foro.php">Foro</a>
             <a href="logout.php">Logout</a>
         <?php endif; ?>
     </nav>
