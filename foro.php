@@ -99,7 +99,8 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
     } else {
         header("Location: foro.php?error=2");
         exit();
-    }
+    } 
+    
 }
 ?>
 
