@@ -32,14 +32,14 @@ $apiBaseUrl = 'https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net
 $movieReviews = [];
 $venueReviews = [];
 
-$movieResponse = makeApiRequest($apiBaseUrl . 'peliculas');
+$movieResponse = makeApiRequest($apiBaseUrl . 'pelicula');
 if ($movieResponse['http_code'] === 200) {
     $movieReviews = $movieResponse['response'];
 } else {
     error_log("Error al obtener reseñas de películas: " . print_r($movieResponse['response'], true));
 }
 
-$venueResponse = makeApiRequest($apiBaseUrl . 'sedes');
+$venueResponse = makeApiRequest($apiBaseUrl . 'sede');
 if ($venueResponse['http_code'] === 200) {
     $venueReviews = $venueResponse['response'];
 } else {
