@@ -101,11 +101,11 @@ sqlsrv_close($conn);
     <style>
         /* Estilos específicos para la sección de Historial de Compras */
         .purchase-history-container {
-            background-color: var(--color-texto-oscuro); /* Fondo principal de la sección */
+            background-color: var(--color-primario);
             padding: 30px;
             border-radius: 12px; /* Bordes más redondeados */
             margin-top: 40px;
-            color: var(--color-texto-claro); /* Color de texto general de la sección */
+            color: var(--color-primario); /* Color de texto general de la sección */
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
             width: 100%;
             max-width: 750px; /* Un poco más ancho para dar espacio */
@@ -125,7 +125,7 @@ sqlsrv_close($conn);
             font-weight: 700; /* Más negrita */
         }
         .purchase-item {
-            background-color: #4a4a4a; /* Fondo más oscuro para cada item, contrastando con el contenedor */
+            background-color: #F5F0E6; /* Fondo más oscuro para cada item, contrastando con el contenedor */
             padding: 22px;
             border-radius: 10px; /* Bordes redondeados para cada tarjeta de compra */
             margin-bottom: 25px; /* Más espacio entre items */
@@ -146,7 +146,7 @@ sqlsrv_close($conn);
         }
         .purchase-item p {
             margin: 0;
-            color: var(--color-texto-claro); /* Texto principal de los detalles */
+            color: var(--color-texto-oscuro); /* Texto principal de los detalles */
             font-size: 1.1em;
             line-height: 1.5;
             display: flex;
