@@ -93,10 +93,7 @@ if (isset($_POST['select_butaca'])) {
             }
             if (!empty($occupied_seats)) {
                 sqlsrv_rollback($conn);
-                echo "<script>
-                    alert('Una o más butacas seleccionadas ya están reservadas. Por favor, selecciona otras.');
-                    history.back();
-                </script>";
+                echo "<p style='color: red; text-align: center;'>Error: Una o más butacas seleccionadas ya están reservadas. Por favor, selecciona otras.</p>";
                 exit;
             }
 
@@ -161,11 +158,6 @@ $title_map = [
     <div class="page-container">
         <header class="main-header">
             <a href="pelicula.php" class="logo">ZYNEMAX+</a>
-            <div class="hamburger">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
             <nav class="main-nav">
                 <a href="perfil.php">PERFIL</a>
                 <a href="pelicula.php" class="active">PELÍCULAS</a>
@@ -237,22 +229,16 @@ $title_map = [
                         <?php endwhile; sqlsrv_free_stmt($stmt); ?>
                     </div>
 
-                <?php elseif ($step === 'butaca'): 
-                    $sql_price = "SELECT precio FROM Pelicula WHERE id_pelicula = ?";
-                    $stmt_price = sqlsrv_query($conn, $sql_price, [$_SESSION['selected_movie']]);
-                    $precio_por_butaca = sqlsrv_fetch_array($stmt_price, SQLSRV_FETCH_ASSOC)['precio'] ?? 0;
-                ?>
+                <?php elseif ($step === 'butaca'): ?>
                     <div class="seating-chart-container">
                         <div class="screen">PANTALLA</div>
                         <div id="selected-seat" style="color: var(--color-texto-claro); font-size: 1.2rem; margin-bottom: 1.5rem; text-align: center;">
                             Selecciona una o más butacas
                         </div>
-                        <div id="total-price" style="color: var(--color-texto-claro); font-size: 1.2rem; margin-bottom: 1.5rem; text-align: center; font-weight: bold;">
-                            Precio Total: S/ 0.00
-                        </div>
                         <form method="POST" action="pelicula.php">
                             <div class="seat-grid">
                                 <?php
+                                // Obtener TODAS las butacas de la sala para saber la estructura
                                 $sql_all = "SELECT id_butaca, fila, numero_butaca FROM Butaca WHERE id_sala = ? ORDER BY fila DESC, numero_butaca ASC";
                                 $stmt_all = sqlsrv_query($conn, $sql_all, [$_SESSION['selected_sala']]);
                                 $all_seats = [];
@@ -260,6 +246,7 @@ $title_map = [
                                     $all_seats[$row['fila']][$row['numero_butaca']] = $row['id_butaca'];
                                 }
                                 
+                                // Obtener las butacas OCUPADAS
                                 $sql_occupied = "SELECT rb.id_butaca FROM Reserva_butaca rb JOIN Reserva_funcion rf ON rb.id_reserva_funcion = rf.id_reserva_funcion WHERE rf.id_funcion = ?";
                                 $stmt_occupied = sqlsrv_query($conn, $sql_occupied, [$_SESSION['function_id']]);
                                 $occupied_seats_ids = [];
@@ -267,6 +254,7 @@ $title_map = [
                                     $occupied_seats_ids[] = $row['id_butaca'];
                                 }
                                 
+                                // Dibujar la rejilla
                                 foreach ($all_seats as $fila => $butacas):
                                 ?>
                                 <div class="seat-row">
@@ -303,7 +291,7 @@ $title_map = [
                         $stmt_b = sqlsrv_query($conn, $sql_b, $_SESSION['selected_butacas']);
                         $butacas = [];
                         while ($row = sqlsrv_fetch_array($stmt_b, SQLSRV_FETCH_ASSOC)) {
-                            $butacas[] = htmlspecialchars($row['fila'] . $row['numero_butaca']);
+                            $butacas[] = "Fila " . htmlspecialchars($row['fila']) . ", Asiento " . $row['numero_butaca'];
                         }
                         ?>
                         <p><strong>Usuario:</strong> <?php echo htmlspecialchars($_SESSION['nombre']); ?></p>
@@ -336,7 +324,7 @@ $title_map = [
                         $stmt_b = sqlsrv_query($conn, $sql_b, $_SESSION['selected_butacas']);
                         $butacas = [];
                         while ($row = sqlsrv_fetch_array($stmt_b, SQLSRV_FETCH_ASSOC)) {
-                            $butacas[] = htmlspecialchars($row['fila'] . $row['numero_butaca']);
+                            $butacas[] = "Fila " . htmlspecialchars($row['fila']) . ", Asiento " . $row['numero_butaca'];
                         }
                         ?>
                         <h3>Zynemax+ | Tu Cine Favorito</h3><hr>
@@ -367,25 +355,20 @@ $title_map = [
         document.addEventListener('DOMContentLoaded', function() {
             const seatButtons = document.querySelectorAll('.seat-button:not(.occupied)');
             const selectedSeatDisplay = document.getElementById('selected-seat');
-            const totalPriceDisplay = document.getElementById('total-price');
-            const maxSeats = 10;
-            const precioPorButaca = <?php echo $precio_por_butaca; ?>;
+            const maxSeats = 10; // Límite de butacas por compra
 
             function updateSelectedSeats() {
                 const selectedSeats = document.querySelectorAll('.seat-button.selected');
                 const selectedCount = selectedSeats.length;
-                const totalPrice = (selectedCount * precioPorButaca).toFixed(2);
                 if (selectedCount === 0) {
                     selectedSeatDisplay.textContent = 'Selecciona una o más butacas';
-                    totalPriceDisplay.textContent = 'Precio Total: S/ 0.00';
                 } else {
                     const seatList = Array.from(selectedSeats).map(button => {
                         const fila = button.getAttribute('data-fila');
                         const numero = button.getAttribute('data-numero');
-                        return `${fila}${numero}`;
+                        return `Fila ${fila}, Asiento ${numero}`;
                     });
                     selectedSeatDisplay.textContent = `Butacas seleccionadas: ${seatList.join('; ')}`;
-                    totalPriceDisplay.textContent = `Precio Total: S/ ${totalPrice}`;
                 }
             }
 
@@ -405,6 +388,7 @@ $title_map = [
                 });
             });
 
+            // Actualizar visualmente si se cambia el estado del checkbox directamente
             const seatInputs = document.querySelectorAll('.seat-input:not([disabled])');
             seatInputs.forEach(input => {
                 input.addEventListener('change', function() {
@@ -421,27 +405,6 @@ $title_map = [
         });
     </script>
     <?php endif; ?>
-    <script>
-        // JavaScript para el menú hamburguesa
-        document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger');
-            const navMenu = document.querySelector('.main-nav');
-
-            hamburger.addEventListener('click', function() {
-                navMenu.classList.toggle('active');
-                // Animación de las barras del hamburguesa (opcional)
-                hamburger.classList.toggle('active');
-            });
-
-            // Cerrar el menú si se hace clic fuera
-            document.addEventListener('click', function(event) {
-                if (!hamburger.contains(event.target) && !navMenu.contains(event.target)) {
-                    navMenu.classList.remove('active');
-                    hamburger.classList.remove('active');
-                }
-            });
-        });
-    </script>
     <?php sqlsrv_close($conn); ?>
 </body>
 </html>
