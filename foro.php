@@ -2,10 +2,10 @@
 ob_start();
 session_start();
 
-// SQL Database connection
+// Conexión a la base de datos SQL
 $serverName = "database-zynemaxplus-server.database.windows.net";
 $connectionInfo = [
-    "Database" => "database-zynemaxplus-server",
+    "Database" => "database-zynemaxplus-server", 
     "UID" => "zynemaxplus",
     "PWD" => "grupo2_1al10",
     "Encrypt" => true,
@@ -17,30 +17,32 @@ if ($conn === false) {
     $errors = sqlsrv_errors();
     $errorMessage = "Error de conexión SQL: ";
     foreach ($errors as $error) {
-        $errorMessage .= "SQLSTATE: " . $error['SQLSTATE'] . ", Code: " . $error['code'] . ", Message: " . $error['message'] . "\n";
+        $errorMessage .= "SQLSTATE: " . $error['SQLSTATE'] . ", Código: " . $error['code'] . ", Mensaje: " . $error['message'] . "\n";
     }
     die($errorMessage);
 }
 
-// Fetch movies and venues from SQL database
+// Obtener películas y sedes desde la base de datos SQL
 $movies = [];
 $venues = [];
 if ($conn) {
-    $movieQuery = "SELECT id FROM movies"; // Adjust table and column names as per your schema
-    $venueQuery = "SELECT id FROM venues"; // Adjust table and column names as per your schema
+    // Obtener películas con títulos
+    $movieQuery = "SELECT id_pelicula AS id, titulo FROM Pelicula";
     $movieResult = sqlsrv_query($conn, $movieQuery);
-    $venueResult = sqlsrv_query($conn, $venueQuery);
-
     while ($row = sqlsrv_fetch_array($movieResult, SQLSRV_FETCH_ASSOC)) {
-        $movies[] = $row['id'];
+        $movies[$row['id']] = $row['titulo'];
     }
+
+    // Obtener sedes con ciudad y dirección como nombre
+    $venueQuery = "SELECT id_sede AS id, ciudad_sede + ', ' + direccion_sede AS nombre FROM Sede";
+    $venueResult = sqlsrv_query($conn, $venueQuery);
     while ($row = sqlsrv_fetch_array($venueResult, SQLSRV_FETCH_ASSOC)) {
-        $venues[] = $row['id'];
+        $venues[$row['id']] = $row['nombre'];
     }
     sqlsrv_close($conn);
 }
 
-// API request function for NoSQL database
+// Función de solicitud API para la base de datos NoSQL
 function makeApiRequest($url, $method = 'GET', $data = null) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -58,7 +60,7 @@ function makeApiRequest($url, $method = 'GET', $data = null) {
     return ['http_code' => $httpCode, 'response' => json_decode($response, true)];
 }
 
-// Fetch reviews from NoSQL database via API
+// Obtener reseñas desde la base de datos NoSQL vía API
 $apiBaseUrl = 'https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net/api/reviews/';
 $movieReviews = [];
 $venueReviews = [];
@@ -75,7 +77,7 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
     $rating = filter_input(INPUT_POST, 'rating', FILTER_VALIDATE_INT);
     if ($type && $id && $comment && $rating && in_array($type, ['pelicula', 'sede']) && $rating >= 1 && $rating <= 5) {
         $data = ['dni' => (string)$_SESSION['dni'], 'nombre' => $_SESSION['nombre'], 'comentario' => $comment, 'puntuacion' => $rating, 'id' => (string)$id];
-        $postUrl = $apiBaseUrl . $type; // Send review to NoSQL via API
+        $postUrl = $apiBaseUrl . $type; // Enviar reseña a NoSQL vía API
         $response = makeApiRequest($postUrl, 'POST', $data);
         if ($response['http_code'] === 201) {
             header("Location: foro.php?success=1");
@@ -131,19 +133,13 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
                             if (isset($_GET['success'])) echo "<p style='color:green;'>Reseña enviada exitosamente.</p>";
                         ?>
                         <form method="POST">
-                            <select name="review_type" required>
+                            <select name="review_type" id="review_type" required onchange="updateIdDropdown()">
                                 <option value="">Selecciona el tipo de reseña</option>
                                 <option value="pelicula">Película</option>
                                 <option value="sede">Sede</option>
                             </select>
-                            <select name="id" required>
+                            <select name="id" id="id_dropdown" required>
                                 <option value="">Selecciona un ID</option>
-                                <?php foreach ($movies as $movieId): ?>
-                                    <option value="<?php echo htmlspecialchars($movieId); ?>">Película ID: <?php echo htmlspecialchars($movieId); ?></option>
-                                <?php endforeach; ?>
-                                <?php foreach ($venues as $venueId): ?>
-                                    <option value="<?php echo htmlspecialchars($venueId); ?>">Sede ID: <?php echo htmlspecialchars($venueId); ?></option>
-                                <?php endforeach; ?>
                             </select>
                             <textarea name="comment" placeholder="Tu comentario (máx. 500 caracteres)" required maxlength="500"></textarea>
                             <select name="rating" required>
@@ -166,7 +162,7 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
                     <?php if (!empty($movieReviews)): foreach ($movieReviews as $review): ?>
                     <div class="card">
                         <div class="card-content">
-                            <h3>Película ID: <?php echo htmlspecialchars($review['id_pelicula'] ?? $review['id']); ?></h3>
+                            <h3>Película: <?php echo htmlspecialchars($review['id_pelicula'] ?? $review['id']); ?> - <?php echo htmlspecialchars(getMovieTitle($review['id_pelicula'] ?? $review['id'])); ?></h3>
                             <p><strong>Puntuación:</strong> <?php echo htmlspecialchars($review['puntuacion']); ?>/5</p>
                             <p><em>"<?php echo htmlspecialchars($review['comentario']); ?>"</em></p>
                             <p style="text-align: right; font-size: 0.8rem; margin-top: auto;">- <?php echo htmlspecialchars($review['nombre']); ?></p>
@@ -182,7 +178,7 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
                     <?php if (!empty($venueReviews)): foreach ($venueReviews as $review): ?>
                     <div class="card">
                         <div class="card-content">
-                            <h3>Sede ID: <?php echo htmlspecialchars($review['id_sede'] ?? $review['id']); ?></h3>
+                            <h3>Sede: <?php echo htmlspecialchars($review['id_sede'] ?? $review['id']); ?> - <?php echo htmlspecialchars(getVenueName($review['id_sede'] ?? $review['id'])); ?></h3>
                             <p><strong>Puntuación:</strong> <?php echo htmlspecialchars($review['puntuacion']); ?>/5</p>
                             <p><em>"<?php echo htmlspecialchars($review['comentario']); ?>"</em></p>
                             <p style="text-align: right; font-size: 0.8rem; margin-top: auto;">- <?php echo htmlspecialchars($review['nombre']); ?></p>
@@ -196,8 +192,40 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
         </main>
     </div>
     <footer class="main-footer">
-        <p>© 2025 Zynemax+ | Todos los derechos reservados</p>
+        <p>© 2025 ZynemaX+ | Todos los derechos reservados</p>
     </footer>
+    <script>
+        const movies = <?php echo json_encode($movies); ?>;
+        const venues = <?php echo json_encode($venues); ?>;
+        const idDropdown = document.getElementById('id_dropdown');
+        const reviewType = document.getElementById('review_type');
+
+        function updateIdDropdown() {
+            const type = reviewType.value;
+            idDropdown.innerHTML = '<option value="">Selecciona un ID</option>';
+            const options = type === 'pelicula' ? movies : venues;
+            for (const [id, name] of Object.entries(options)) {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = `${type === 'pelicula' ? 'Película' : 'Sede'} ${id} - ${name}`;
+                idDropdown.appendChild(option);
+            }
+        }
+
+        // Inicializar el desplegable según la selección predeterminada
+        reviewType.onchange();
+    </script>
 </body>
 </html>
-<?php ob_end_flush(); ?>
+<?php ob_end_flush();
+
+function getMovieTitle($id) {
+    global $movies;
+    return $movies[$id] ?? "Desconocido";
+}
+
+function getVenueName($id) {
+    global $venues;
+    return $venues[$id] ?? "Desconocido";
+}
+?>
