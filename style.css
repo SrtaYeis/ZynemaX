@@ -1,4 +1,4 @@
-/* --- ZYNEMAX+ STYLES V5 (CON BUTACAS VISUALES Y MENÚ HAMBURGUESA) --- */
+/* --- ZYNEMAX+ STYLES V5 (CON BUTACAS VISUALES) --- */
 /* Autor de la mejora: Asistente de IA */
 
 /* --- PALETA DE COLORES Y VARIABLES --- */
@@ -75,51 +75,6 @@ body {
 .nav-button:hover {
     background-color: #fff;
     color: #800000 !important;
-}
-
-/* --- MENÚ HAMBURGUESA --- */
-.hamburger {
-    display: none; /* Oculto por defecto en pantallas grandes */
-    cursor: pointer;
-    padding: 10px;
-}
-.hamburger .bar {
-    display: block;
-    width: 25px;
-    height: 3px;
-    background-color: var(--color-texto-claro);
-    margin: 5px 0;
-    transition: all 0.3s ease;
-}
-.nav-menu {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 70px;
-    right: 20px;
-    background-color: var(--color-primario);
-    padding: 1rem;
-    border-radius: 5px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    transform: translateY(-100%);
-    transition: transform 0.3s ease;
-}
-.nav-menu.active {
-    transform: translateY(0);
-}
-.nav-menu a {
-    color: var(--color-texto-claro);
-    text-decoration: none;
-    margin: 0.5rem 0;
-    font-weight: bold;
-    font-size: 1.1rem;
-    text-align: center;
-    width: 100%;
-}
-.nav-menu .nav-button {
-    width: 100%;
-    margin-top: 0.5rem;
 }
 
 /* --- SECCIÓN HERO (IMAGEN GRANDE SUPERIOR) --- */
@@ -523,27 +478,9 @@ button:hover, .button:hover {
 
 @media (max-width: 768px) {
     .main-header { flex-direction: column; padding: 1rem; }
-    .hamburger {
-        display: block; /* Muestra el botón hamburguesa en modo celular */
-    }
-    .main-nav {
-        display: none; /* Oculta el menú horizontal por defecto */
-        width: 100%;
-        flex-direction: column;
-        align-items: center;
-    }
-    .main-nav.active {
-        display: flex; /* Muestra el menú al activar el hamburguesa */
-    }
-    .main-nav a {
-        margin: 0.5rem 0;
-        padding: 0.5rem;
-        width: 100%;
-        text-align: center;
-    }
-    .nav-button {
-        width: 80%;
-    }
+    .main-nav { flex-direction: column; width: 100%; margin-top: 1rem; }
+    .main-nav a { margin: 0.5rem 0; padding: 0.5rem; width: 100%; text-align: center; }
+    .nav-button { width: 80%; }
     .page-title-overlay { font-size: 2rem; }
     .card { margin-bottom: 1.5rem; }
     .card-content h3 { font-size: 1.1rem; min-height: auto; }
