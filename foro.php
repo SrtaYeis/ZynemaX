@@ -28,7 +28,7 @@ function makeApiRequest($url, $method = 'GET', $data = null) {
 }
 
 // Obtener reseñas de películas y sedes
-$apiBaseUrl = 'https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net/api/reviews/';
+$apiBaseUrl = 'https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net/api/review/';
 $movieReviews = [];
 $venueReviews = [];
 
@@ -36,14 +36,14 @@ $movieResponse = makeApiRequest($apiBaseUrl . 'peliculas');
 if ($movieResponse['http_code'] === 200) {
     $movieReviews = $movieResponse['response'];
 } else {
-    error_log("Error al obtener reseñas de películas: " . print_r($movieResponse['response'], true));
+    error_log("Error al obtener reseñas de películas: HTTP Code " . $movieResponse['http_code'] . ", Response: " . print_r($movieResponse['response'], true));
 }
 
 $venueResponse = makeApiRequest($apiBaseUrl . 'sedes');
 if ($venueResponse['http_code'] === 200) {
     $venueReviews = $venueResponse['response'];
 } else {
-    error_log("Error al obtener reseñas de sedes: " . print_r($venueResponse['response'], true));
+    error_log("Error al obtener reseñas de sedes: HTTP Code " . $venueResponse['http_code'] . ", Response: " . print_r($venueResponse['response'], true));
 }
 
 // Procesar la creación de una nueva reseña
@@ -64,8 +64,9 @@ if (isset($_POST['submit_review']) && isset($_SESSION['dni'])) {
         ];
         
         $endpoint = ($type === 'pelicula') ? 'peliculas' : 'sedes';
-        error_log("Sending POST to /api/reviews/$endpoint with data: " . print_r($data, true));
-        $response = makeApiRequest($apiBaseUrl . $endpoint, 'POST', $data);
+        $postUrl = 'https://rest-api-app-e7f4cfdzg0caf7c8.eastus-01.azurewebsites.net/api/reviews/' . $endpoint;
+        error_log("Sending POST to $postUrl with data: " . print_r($data, true));
+        $response = makeApiRequest($postUrl, 'POST', $data);
         
         error_log("API Response - HTTP Code: " . $response['http_code'] . ", Response: " . print_r($response['response'], true));
         
