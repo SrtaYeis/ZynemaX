@@ -23,7 +23,7 @@ if (isset($_GET['register_success'])) {
     $success_message = "Registro exitoso. Por favor, inicia sesión.";
 }
 
-// Lógica de POST del archivo original
+// Mantenemos la lógica de POST del archivo original
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $serverName = "database-zynemaxplus-server.database.windows.net";
     $connectionInfo = ["Database" => "database-zynemaxplus-server", "UID" => "zynemaxplus", "PWD" => "grupo2_1al10", "Encrypt" => true, "TrustServerCertificate" => false];
