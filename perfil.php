@@ -7,38 +7,81 @@ if (!isset($_SESSION['dni'])) {
     exit();
 }
 
+// =================================================================
+//  INICIO DE LA CONEXIÓN A LA BASE DE DATOS Y OBTENCIÓN DE DATOS
+// =================================================================
+
+// Conexión a Azure SQL Database
 $serverName = "database-zynemaxplus-server.database.windows.net";
+// Es ALTAMENTE RECOMENDABLE almacenar las credenciales de forma segura (ej. variables de entorno),
+// no directamente en el código para un entorno de producción.
 $connectionInfo = ["Database" => "database-zynemaxplus-server", "UID" => "zynemaxplus", "PWD" => "grupo2_1al10", "Encrypt" => true, "TrustServerCertificate" => false];
 $conn = sqlsrv_connect($serverName, $connectionInfo);
-if ($conn === false) { die("Error de conexión."); }
+
+if ($conn === false) {
+    // Registra el error para depuración y muestra un mensaje genérico al usuario
+    error_log("Error de conexión a la base de datos: " . print_r(sqlsrv_errors(), true));
+    die("Lo sentimos, no pudimos conectar con la base de datos en este momento.");
+}
 
 $dni_usuario = $_SESSION['dni'];
 $historial_compras = [];
 
-// Consulta para obtener el historial de compras del usuario
-// Ajusta la consulta SQL según la estructura de tu base de datos
-$sql_compras = "SELECT p.titulo AS pelicula, c.fecha_compra, c.hora_funcion, c.cantidad_entradas, c.total_pagado 
-                FROM compras c
-                JOIN peliculas p ON c.id_pelicula = p.id_pelicula
-                WHERE c.dni_usuario = ?
-                ORDER BY c.fecha_compra DESC";
+// Consulta SQL ajustada para tu esquema de base de datos
+// Se asume que una "compra" es una reserva de butacas para una función de película.
+// El "total_pagado" se calcula multiplicando el número de butacas reservadas por el precio de la película.
+$sql_compras = "
+    SELECT
+        P.titulo AS pelicula,
+        F.fecha_hora AS fecha_hora_funcion,
+        COUNT(RB.id_butaca) AS cantidad_entradas,
+        (COUNT(RB.id_butaca) * P.precio) AS total_pagado -- Calcula el total basado en entradas * precio de la película
+    FROM
+        Usuario U
+    JOIN
+        Reserva R ON U.dni = R.dni_usuario
+    JOIN
+        Reserva_funcion RF ON R.id_reserva = RF.id_reserva
+    JOIN
+        Funcion F ON RF.id_funcion = F.id_funcion
+    JOIN
+        Pelicula P ON F.id_pelicula = P.id_pelicula
+    LEFT JOIN -- LEFT JOIN para asegurar que todas las reserva_funcion sean consideradas
+        Reserva_butaca RB ON RF.id_reserva_funcion = RB.id_reserva_funcion
+    WHERE
+        U.dni = ?
+    GROUP BY
+        P.titulo, F.fecha_hora, P.precio
+    ORDER BY
+        F.fecha_hora DESC;
+";
 
-if ($stmt = $conexion->prepare($sql_compras)) {
-    $stmt->bind_param("s", $dni_usuario);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
+// Prepara y ejecuta la consulta usando las funciones sqlsrv
+$params = array(&$dni_usuario); // Parámetro para el DNI
+
+$stmt = sqlsrv_query($conn, $sql_compras, $params);
+
+if ($stmt === false) {
+    error_log("Error al ejecutar la consulta de compras: " . print_r(sqlsrv_errors(), true));
+    $historial_compras = []; // Asegura que el array esté vacío si la consulta falla
+} else {
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        // Las columnas DATETIME se devuelven como objetos DateTime.
+        // Formateamos la fecha y hora para la visualización.
+        $fecha_hora_dt = $row['fecha_hora_funcion'];
+        $row['fecha_compra'] = $fecha_hora_dt->format('Y-m-d'); // Extrae solo la fecha
+        $row['hora_funcion'] = $fecha_hora_dt->format('H:i'); // Extrae solo la hora
         $historial_compras[] = $row;
     }
-    $stmt->close();
-} else {
-    // Manejar el error de la consulta preparada
-    error_log("Error al preparar la consulta de compras: " . $conexion->error);
+    sqlsrv_free_stmt($stmt); // Libera los recursos de la declaración
 }
 
-// Cerrar la conexión a la base de datos
-$conexion->close();
+// Cierra la conexión a la base de datos al finalizar
+sqlsrv_close($conn);
 
+// =================================================================
+//  FIN DE LA CONEXIÓN A LA BASE DE DATOS Y OBTENCIÓN DE DATOS
+// =================================================================
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -73,8 +116,8 @@ $conexion->close();
         }
         .purchase-item p {
             margin: 5px 0;
-            flex: 1; /* Allow items to grow and shrink */
-            min-width: 150px; /* Minimum width before wrapping */
+            flex: 1; /* Permite que los elementos crezcan y se encojan */
+            min-width: 150px; /* Ancho mínimo antes de envolver */
         }
         .purchase-item strong {
             color: #ffb400;
