@@ -32,12 +32,10 @@ $historial_compras = [];
 $sql_compras = "
     SELECT
         P.titulo AS pelicula,
-        F.fecha_hora AS fecha_hora_funcion, -- Se mantiene por si necesitas la hora de la función para el cálculo o depuración, aunque no se mostrará directamente.
         PG.fecha_pago AS fecha_pago,        -- Fecha y hora del pago real
         COUNT(RB.id_butaca) AS cantidad_entradas,
         (COUNT(RB.id_butaca) * P.precio) AS total_pagado,
-        -- Asegúrate de que STRING_AGG solo combine butacas únicas si es posible,
-        -- DISTINCT es clave si hay riesgo de duplicados en Reserva_butaca para una misma RF.id_reserva_funcion
+        -- STRING_AGG para combinar butacas únicas para esta Reserva_funcion
         STRING_AGG(CONCAT(B.fila, B.numero_butaca), ', ') WITHIN GROUP (ORDER BY B.fila, B.numero_butaca) AS butacas_compradas
     FROM
         Usuario U
@@ -58,7 +56,7 @@ $sql_compras = "
     WHERE
         U.dni = ?
     GROUP BY
-        RF.id_reserva_funcion, P.titulo, F.fecha_hora, P.precio, PG.fecha_pago -- Agrupar por la reserva de función y todos los campos no agregados
+        RF.id_reserva_funcion, P.titulo, P.precio, PG.fecha_pago -- Agrupar por la reserva de función y todos los campos no agregados
     ORDER BY
         PG.fecha_pago DESC;
 ";
@@ -79,7 +77,7 @@ if ($stmt === false) {
 
         // Asegúrate de que las fechas no sean nulas antes de formatear
         $row['fecha_pago_formatted'] = $fecha_pago_dt ? $fecha_pago_dt->format('Y-m-d H:i') : 'N/A';
-        // 'fecha_hora_funcion' no se mostrará directamente, pero puede ser útil para depuración.
+        // 'fecha_hora_funcion' no se mostrará directamente.
 
         $historial_compras[] = $row;
     }
@@ -101,75 +99,84 @@ sqlsrv_close($conn);
     <title>Mi Perfil - ZynemaX+</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Estilos mejorados para el historial de compras */
+        /* Estilos específicos para la sección de Historial de Compras */
         .purchase-history-container {
-            background-color: var(--color-texto-oscuro); /* Usando la variable del color oscuro principal */
+            background-color: var(--color-texto-oscuro); /* Fondo principal de la sección */
             padding: 30px;
-            border-radius: 10px;
+            border-radius: 12px; /* Bordes más redondeados */
             margin-top: 40px;
-            color: var(--color-texto-claro); /* Texto claro */
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
-            width: 100%; /* Ocupa todo el ancho disponible */
-            max-width: 700px; /* Ancho máximo para legibilidad */
+            color: var(--color-texto-claro); /* Color de texto general de la sección */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
+            width: 100%;
+            max-width: 750px; /* Un poco más ancho para dar espacio */
             margin-left: auto;
             margin-right: auto;
+            border: 2px solid var(--color-primario); /* Borde primario para destacar */
         }
         .purchase-history-container h2 {
-            color: var(--color-primario); /* Rojo/vino para el título */
+            color: var(--color-primario); /* Título en color primario (rojo/vino) */
             margin-bottom: 30px;
             text-align: center;
-            font-size: 2.2em;
+            font-size: 2.5em; /* Título más grande */
             padding-bottom: 15px;
-            border-bottom: 3px solid var(--color-primario); /* Línea de separación más fuerte */
+            border-bottom: 3px solid var(--color-primario); /* Línea inferior más gruesa */
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px; /* Mayor espacio entre letras */
+            font-weight: 700; /* Más negrita */
         }
         .purchase-item {
-            background-color: #555555; /* Un gris más oscuro para cada item de compra */
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background-color: #4a4a4a; /* Fondo más oscuro para cada item, contrastando con el contenedor */
+            padding: 22px;
+            border-radius: 10px; /* Bordes redondeados para cada tarjeta de compra */
+            margin-bottom: 25px; /* Más espacio entre items */
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            border: 1px solid #666666; /* Borde más visible */
+            gap: 12px; /* Más espacio entre los detalles */
+            border: 1px solid #666; /* Borde sutil para cada item */
             transition: all 0.3s ease;
+            position: relative; /* Para posibles elementos decorativos */
         }
         .purchase-item:hover {
-            background-color: #6a6a6a; /* Ligeramente más claro al pasar el ratón */
-            transform: translateY(-3px); /* Efecto de elevación sutil */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            background-color: #5a5a5a; /* Ligeramente más claro al pasar el ratón */
+            transform: translateY(-5px); /* Efecto de elevación más notorio */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); /* Sombra más fuerte al pasar el ratón */
         }
         .purchase-item:last-child {
             margin-bottom: 0;
         }
         .purchase-item p {
             margin: 0;
-            color: var(--color-texto-claro);
-            font-size: 1.05em;
-            display: flex; /* Para alinear etiqueta y valor */
-            justify-content: space-between; /* Espacia etiqueta y valor */
-            align-items: baseline;
+            color: var(--color-texto-claro); /* Texto principal de los detalles */
+            font-size: 1.1em;
+            line-height: 1.5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* Alinea verticalmente los items */
+            flex-wrap: wrap; /* Permite que los elementos se envuelvan si el espacio es limitado */
         }
         .purchase-item strong {
-            color: var(--color-primario);
+            color: var(--color-primario); /* Etiquetas en color primario */
             font-weight: bold;
-            flex-shrink: 0; /* Evita que la etiqueta se encoja */
-            margin-right: 15px; /* Espacio entre etiqueta y valor */
+            flex-shrink: 0;
+            margin-right: 15px;
+            min-width: 140px; /* Ancho mínimo para las etiquetas para una mejor alineación */
+            text-align: left;
         }
-        /* Estilo para los valores */
         .purchase-item span.value {
+            flex-grow: 1;
             text-align: right; /* Alinea el valor a la derecha */
-            flex-grow: 1; /* Permite que el valor ocupe el espacio restante */
+            color: #f5f0e6; /* Un blanco puro para los valores */
+            font-weight: 500;
         }
         .no-purchases {
             text-align: center;
             font-style: italic;
-            color: #ccc;
-            padding: 30px;
-            font-size: 1.1em;
-            background-color: #4a4a4a;
-            border-radius: 8px;
+            color: #aaa;
+            padding: 40px;
+            font-size: 1.2em;
+            background-color: #444; /* Un fondo oscuro para el mensaje de "no compras" */
+            border-radius: 10px;
+            border: 1px dashed var(--color-primario); /* Borde punteado para este mensaje */
         }
     </style>
 </head>
@@ -225,7 +232,7 @@ sqlsrv_close($conn);
         </main>
     </div>
     <footer class="main-footer">
-        <p>© 2025 Zynemax+ | Todos los derechos reservados</p>
+        <p>© 2025 Zynemax+ | Todos los derechos reservados | Dibujitos al mando</p>
     </footer>
 </body>
 </html>
