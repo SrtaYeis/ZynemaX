@@ -1,6 +1,6 @@
-/* --- ZYNEMAX+ STYLES V3.1 (PARA PHP) --- */
+/* --- ZYNEMAX+ STYLES V4 (CORREGIDO Y COMPATIBLE) --- */
 /* Autor de la mejora: Asistente de IA */
-/* Replicando wireframes con integración de datos */
+/* Replicando wireframes con la lógica PHP del usuario */
 
 /* --- PALETA DE COLORES Y VARIABLES --- */
 :root {
@@ -16,11 +16,9 @@ html {
     height: 100%;
     box-sizing: border-box;
 }
-
 *, *::before, *::after {
     box-sizing: inherit;
 }
-
 body {
     font-family: var(--font-principal);
     margin: 0;
@@ -29,12 +27,10 @@ body {
     color: var(--color-texto-oscuro);
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Clave para el sticky footer */
+    min-height: 100vh;
 }
-
-/* --- ESTRUCTURA PRINCIPAL --- */
 .page-container {
-    flex: 1 0 auto; /* Permite que el contenedor crezca */
+    flex: 1 0 auto;
 }
 
 /* --- HEADER / BARRA DE NAVEGACIÓN --- */
@@ -45,21 +41,17 @@ body {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    border-bottom: 2px solid rgba(0,0,0,0.1);
 }
-
 .logo {
     font-size: 2.5rem;
     color: var(--color-texto-claro);
     font-weight: bold;
     text-decoration: none;
 }
-
 .main-nav {
     display: flex;
     align-items: center;
 }
-
 .main-nav a {
     color: var(--color-texto-claro);
     text-decoration: none;
@@ -70,11 +62,9 @@ body {
     border-bottom: 2px solid transparent;
     transition: border-color 0.3s;
 }
-
 .main-nav a:hover, .main-nav a.active {
     border-bottom-color: var(--color-texto-claro);
 }
-
 .nav-button {
     background-color: var(--color-fondo-principal);
     color: var(--color-primario) !important;
@@ -83,7 +73,6 @@ body {
     border-bottom: none !important;
     transition: background-color 0.3s, color 0.3s;
 }
-
 .nav-button:hover {
     background-color: #fff;
     color: #800000 !important;
@@ -92,8 +81,8 @@ body {
 /* --- SECCIÓN HERO (IMAGEN GRANDE SUPERIOR) --- */
 .hero-section {
     position: relative;
-    height: 50vh;
-    min-height: 400px;
+    height: 55vh; /* Un poco más de altura para bajar el formulario */
+    min-height: 450px;
     background: url('https://i0.wp.com/efe.com/wp-content/uploads/2024/03/OBJ_20240328T213505S0012I_1_299_1_15_3_1.jpg?fit=1920%2C1080&ssl=1') no-repeat center center/cover;
     display: flex;
     align-items: center;
@@ -101,7 +90,6 @@ body {
     color: var(--color-texto-claro);
     text-align: center;
 }
-
 .hero-section::after {
     content: '';
     position: absolute;
@@ -109,7 +97,6 @@ body {
     width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.3);
 }
-
 .page-title-overlay {
     font-size: 4rem;
     font-weight: bold;
@@ -125,7 +112,6 @@ body {
     margin: 0 auto;
     width: 100%;
 }
-
 .content-title {
     font-size: 2.5rem;
     color: var(--color-primario);
@@ -138,29 +124,23 @@ body {
 .form-overlay {
     position: absolute;
     right: 5%;
-    top: 50%;
+    top: 55%; /* Ajustado para bajar el formulario */
     transform: translateY(-50%);
-    width: 400px;
+    width: 420px;
     background-color: var(--color-fondo-principal);
-    padding: 2rem;
+    padding: 2.5rem;
     border-radius: 15px;
     border: 5px solid var(--color-primario);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     z-index: 3;
-    color: var(--color-primario);
+    color: var(--color-texto-oscuro);
 }
-
-.form-overlay h3 {
-    text-align: center;
-    margin-top: 0;
-    font-size: 1.5rem;
-}
-
 .form-overlay .form-tabs {
     display: flex;
     margin-bottom: 1.5rem;
+    border-radius: 5px;
+    overflow: hidden;
 }
-
 .form-overlay .tab-link {
     flex: 1;
     padding: 0.8rem;
@@ -170,19 +150,26 @@ body {
     cursor: pointer;
     font-weight: bold;
     text-decoration: none;
+    border: none;
+    font-size: 1rem;
 }
 .form-overlay .tab-link.active {
     background-color: var(--color-primario);
     color: var(--color-texto-claro);
 }
+.form-overlay label {
+    font-weight: bold;
+    color: var(--color-primario);
+    margin-bottom: 0.2rem;
+    display: block;
+}
 
-/* --- TARJETAS (PELÍCULAS, SEDES, ETC.) --- */
+/* --- TARJETAS (PELÍCULAS, SEDES, RESEÑAS) --- */
 .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 2.5rem;
 }
-
 .card {
     background: var(--color-fondo-principal);
     border-radius: 15px;
@@ -196,37 +183,31 @@ body {
     transform: translateY(-10px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
-
 .card-image-placeholder {
     width: 100%;
-    height: 420px; /* Altura estándar para posters */
+    height: 420px;
     background-size: cover;
     background-position: center;
 }
-
 .card-content {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
 }
-
 .card-content h3 {
     color: var(--color-primario);
     margin: 0 0 1rem;
     font-size: 1.3rem;
 }
-
 .card-content p {
     margin: 0.2rem 0;
     line-height: 1.5;
     font-size: 0.9rem;
 }
-
 .card-content .button {
-    margin-top: auto; /* Empuja el botón al final de la tarjeta */
+    margin-top: auto;
 }
-
 
 /* --- SIMULACIÓN DE IMÁGENES DE PELÍCULA ÚNICAS --- */
 #movie-1001 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1579514271813-659708035118?w=500'); }
@@ -240,12 +221,11 @@ body {
 #movie-1009 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=500'); }
 #movie-1010 .card-image-placeholder { background-image: url('https://images.unsplash.com/photo-1535016120720-40c646be5580?w=500'); }
 
-
 /* --- FORMULARIOS Y BOTONES GENERALES --- */
 input, select, textarea {
     width: 100%;
     padding: 0.8rem;
-    margin: 0.5rem 0 1rem 0;
+    margin-bottom: 1rem;
     border: 2px solid #ccc;
     background-color: #fff;
     border-radius: 8px;
@@ -253,7 +233,6 @@ input, select, textarea {
     color: var(--color-texto-oscuro);
     font-size: 1rem;
 }
-
 button, .button {
     background-color: var(--color-primario);
     color: var(--color-texto-claro);
@@ -271,29 +250,27 @@ button, .button {
     display: inline-block;
     transition: background-color 0.3s;
 }
-
 button:hover, .button:hover {
     background-color: #800000;
 }
-
-/* --- MENSAJES DE ERROR/ÉXITO --- */
-.message {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 5px;
+.form-container {
+    background: var(--color-fondo-principal);
+    color: var(--color-texto-oscuro);
+    padding: 2.5rem;
+    margin: 2rem auto;
+    border-radius: 15px;
+    border: 3px solid var(--color-borde, var(--color-primario));
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+}
+.form-container h2 {
+    color: var(--color-primario);
+    border-bottom: 2px solid var(--color-primario);
+    padding-bottom: 1rem;
+    margin-top: 0;
+    font-size: 2rem;
     text-align: center;
 }
-.message.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-.message.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
 
 /* --- FOOTER --- */
 .main-footer {
@@ -302,6 +279,7 @@ button:hover, .button:hover {
     padding: 1.5rem;
     text-align: center;
     color: var(--color-texto-claro);
+    margin-top: 3rem;
 }
 
 /* --- RESPONSIVE DESIGN --- */
@@ -309,11 +287,11 @@ button:hover, .button:hover {
     .form-overlay {
         position: static;
         transform: none;
-        width: 100%;
+        width: auto;
         max-width: 450px;
-        margin: -80px auto 2rem auto;
+        margin: -100px auto 2rem auto;
     }
-    .hero-section { min-height: 300px; height: 40vh; }
+    .hero-section { min-height: 350px; height: 45vh; }
     .content-area { padding: 1.5rem; }
 }
 @media (max-width: 768px) {
