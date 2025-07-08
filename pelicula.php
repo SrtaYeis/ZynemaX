@@ -15,12 +15,12 @@ if ($conn === false) { die("Error de conexión."); }
 // COPIA COMPLETA DE TU LÓGICA POST ORIGINAL
 if (isset($_POST['select_movie'])) {
     $movie_id = isset($_POST['movie_id']) ? (int)$_POST['movie_id'] : null;
-    if ($movie_id) { $_SESSION['selected_movie'] = $movie_id; header("Location: pelicula.php?step=sede"); exit(); } 
+    if ($movie_id) { $_SESSION['selected_movie'] = $movie_id; header("Location: pelicula.php?step=sede"); exit(); }
     else { header("Location: pelicula.php"); exit(); }
 }
 if (isset($_POST['select_sede'])) {
     $sede_id = isset($_POST['sede_id']) ? (int)$_POST['sede_id'] : null;
-    if ($sede_id) { $_SESSION['selected_sede'] = $sede_id; header("Location: pelicula.php?step=sala"); exit(); } 
+    if ($sede_id) { $_SESSION['selected_sede'] = $sede_id; header("Location: pelicula.php?step=sala"); exit(); }
     else { header("Location: pelicula.php?step=movies"); exit(); }
 }
 if (isset($_POST['select_sala'])) {
@@ -36,7 +36,7 @@ if (isset($_POST['select_sala'])) {
         sqlsrv_next_result($stmt);
         $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
         $id_reserva = $row['id'];
-        
+
         $sql = "INSERT INTO Reserva_funcion (id_reserva, id_funcion) VALUES (?, ?); SELECT SCOPE_IDENTITY() AS id;";
         $params = [$id_reserva, $funcion_id];
         $stmt = sqlsrv_query($conn, $sql, $params);
@@ -77,7 +77,7 @@ if (isset($_POST['confirm_purchase'])) {
     exit();
 }
 
-$step = $_GET['step'] ?? 'movies'; 
+$step = $_GET['step'] ?? 'movies';
 $title_map = [
     'movies' => 'Selecciona una Película', 'sede' => 'Selecciona una Sede',
     'sala' => 'Selecciona una Sala', 'butaca' => 'Selecciona una Butaca',
@@ -143,7 +143,7 @@ $title_map = [
                                 while ($row = sqlsrv_fetch_array($stmt_all, SQLSRV_FETCH_ASSOC)) {
                                     $all_seats[$row['fila']][$row['numero_butaca']] = $row['id_butaca'];
                                 }
-                                
+
                                 // Obtener las butacas OCUPADAS
                                 $sql_occupied = "SELECT rb.id_butaca FROM Reserva_butaca rb JOIN Reserva_funcion rf ON rb.id_reserva_funcion = rf.id_reserva_funcion WHERE rf.id_funcion = ?";
                                 $stmt_occupied = sqlsrv_query($conn, $sql_occupied, [$_SESSION['function_id']]);
@@ -151,13 +151,13 @@ $title_map = [
                                 while ($row = sqlsrv_fetch_array($stmt_occupied, SQLSRV_FETCH_ASSOC)) {
                                     $occupied_seats_ids[] = $row['id_butaca'];
                                 }
-                                
+
                                 // Dibujar la rejilla
                                 foreach ($all_seats as $fila => $butacas):
                                 ?>
                                 <div class="seat-row">
                                     <div class="seat-row-label"><?php echo htmlspecialchars($fila); ?></div>
-                                    <?php foreach ($butacas as $numero => $id_butaca): 
+                                    <?php foreach ($butacas as $numero => $id_butaca):
                                         $is_occupied = in_array($id_butaca, $occupied_seats_ids);
                                     ?>
                                         <label class="seat-button <?php echo $is_occupied ? 'occupied' : ''; ?>">
@@ -241,7 +241,7 @@ $title_map = [
         </main>
     </div>
     <footer class="main-footer">
-        <p>© 2025 Zynemax+ | Todos los derechos reservados</p>
+        <p>© 2025 Zynemax+ | Todos los derechos reservados si</p>
     </footer>
     <?php sqlsrv_close($conn); ?>
 </body>
