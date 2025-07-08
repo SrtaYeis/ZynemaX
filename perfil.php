@@ -105,7 +105,7 @@ sqlsrv_close($conn);
             padding: 30px;
             border-radius: 12px; /* Bordes más redondeados */
             margin-top: 40px;
-            color: var(--color-primario); /* Color de texto general de la sección */
+            color: var(--color-fondo-principal); /* Color de texto general de la sección */
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
             width: 100%;
             max-width: 750px; /* Un poco más ancho para dar espacio */
@@ -125,7 +125,7 @@ sqlsrv_close($conn);
             font-weight: 700; /* Más negrita */
         }
         .purchase-item {
-            background-color: #F5F0E6; /* Fondo más oscuro para cada item, contrastando con el contenedor */
+            background-color: #3d3d3d; /* Fondo más oscuro para cada item, contrastando con el contenedor */
             padding: 22px;
             border-radius: 10px; /* Bordes redondeados para cada tarjeta de compra */
             margin-bottom: 25px; /* Más espacio entre items */
@@ -137,7 +137,7 @@ sqlsrv_close($conn);
             position: relative; /* Para posibles elementos decorativos */
         }
         .purchase-item:hover {
-            background-color: #5a5a5a; /* Ligeramente más claro al pasar el ratón */
+            background-color: #d39394; /* Ligeramente más claro al pasar el ratón */
             transform: translateY(-5px); /* Efecto de elevación más notorio */
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); /* Sombra más fuerte al pasar el ratón */
         }
@@ -155,7 +155,7 @@ sqlsrv_close($conn);
             flex-wrap: wrap; /* Permite que los elementos se envuelvan si el espacio es limitado */
         }
         .purchase-item strong {
-            color: var(--color-primario); /* Etiquetas en color primario */
+            color: #3d3d3d; /* Etiquetas en color primario */
             font-weight: bold;
             flex-shrink: 0;
             margin-right: 15px;
