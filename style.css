@@ -357,6 +357,15 @@ button:hover, .button:hover {
     display: none;
 }
 
+.confirm-button {
+    background-color: #28a745; / Verde para destacar contra el fondo rojo /
+    color: var(--color-texto-claro);
+    border: 2px solid #218838; / Borde verde más oscuro para contraste /
+}
+.confirm-button:hover {
+    background-color: #218838; / Verde más oscuro al pasar el ratón */
+    border-color: #1e7e34;
+}
 
 /* --- FOOTER --- */
 .main-footer {
